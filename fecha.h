@@ -11,7 +11,8 @@ typedef struct stFecha {
 //Prototipos
 Fecha cargarFecha();
 int validarFecha(Fecha f);
-void mostrarFecha(Fecha f)
-int esAnioBisiesto(int anio)
+void mostrarFecha(Fecha f);
+int esAnioBisiesto(int anio);
+Fecha obtenerFechaActual();
 
 #endif

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "fecha.h"
+#include <time.h>
 
 Fecha cargarFecha(){
     Fecha f;
@@ -80,4 +81,17 @@ int esAnioBisiesto(int anio){
 
 void mostrarFecha(Fecha f) {
     printf("%02d/%02d/%04d", f.dia, f.mes, f.anio);
+}
+
+
+Fecha obtenerFechaActual(){
+    Fecha f;
+    time_t t = time(NULL);
+    struct tm *tiempoLocal = localtime(&t);
+
+    f.dia = tiempoLocal->tm_mday;
+    f.mes = tiempoLocal->tm_mon + 1;
+    f.anio = tiempoLocal->tm_year + 1900;
+
+    return f;
 }
