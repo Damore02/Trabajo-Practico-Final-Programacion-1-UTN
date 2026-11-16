@@ -86,12 +86,16 @@ void mostrarFecha(Fecha f) {
 
 Fecha obtenerFechaActual(){
     Fecha f;
+
+    // time(NULL) captura los segundos actuales del reloj del sistema
     time_t t = time(NULL);
+
+    // localtime() convierte esos segundos en dia, mes y anio locales
     struct tm *tiempoLocal = localtime(&t);
 
     f.dia = tiempoLocal->tm_mday;
-    f.mes = tiempoLocal->tm_mon + 1;
-    f.anio = tiempoLocal->tm_year + 1900;
+    f.mes = tiempoLocal->tm_mon + 1;       // tm_mon va de 0 (enero) a 11 (diciembre)
+    f.anio = tiempoLocal->tm_year + 1900;  // tm_year cuenta anios desde 1900
 
     return f;
 }
