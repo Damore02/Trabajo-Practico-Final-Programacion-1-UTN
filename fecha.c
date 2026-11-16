@@ -33,7 +33,7 @@ int validarFecha(Fecha f) {
     int maxDias = 31;
 
     // Validar anio
-    if (f.anio >= 2000) {
+    if (f.anio >= 2000 && f.anio <= 2050) {
         anioValido = 1;
     }
 
