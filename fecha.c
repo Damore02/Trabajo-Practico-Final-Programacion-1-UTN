@@ -1,101 +1,70 @@
-#include <stdio.h>
 #include "fecha.h"
-#include <time.h>
+#include "ui.h"
+#include <stdio.h>
 
-Fecha cargarFecha(){
+/* Determina si un anio es bisiesto para validar febrero */
+static int fechaEsBisiesto(int anio) {
+    return (anio % 4 == 0 && anio % 100 != 0) || (anio % 400 == 0);
+}
+
+/* Retorna la cantidad maxima de dias validos para un mes y anio */
+static int fechaDiasDelMes(int mes, int anio) {
+    int diasPorMes[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+    if (mes < 1 || mes > 12) {
+        return 0;
+    }
+
+    if (mes == 2 && fechaEsBisiesto(anio)) {
+        return 29;
+    }
+
+    return diasPorMes[mes - 1];
+}
+
+/* Verifica si la fecha posee rangos calendario validos */
+int fechaEsValida(Fecha f) {
+    int maxDias;
+
+    if (f.anio < 2020 || f.anio > 2035) {
+        return 0;
+    }
+
+    if (f.mes < 1 || f.mes > 12) {
+        return 0;
+    }
+
+    maxDias = fechaDiasDelMes(f.mes, f.anio);
+    return (f.dia >= 1 && f.dia <= maxDias);
+}
+
+/* Solicita dia, mes y anio por teclado hasta obtener una fecha valida */
+Fecha fechaCargar(const char prompt[]) {
     Fecha f;
+    int valida = 0;
 
-    do{
-        printf("Cargar el dia: ");
-        scanf("%d", &f.dia);
+    printf("%s\n", prompt);
+    while (!valida) {
+        f.dia = uiLeerEnteroEnRango("  Dia (1-31): ", 1, 31);
+        f.mes = uiLeerEnteroEnRango("  Mes (1-12): ", 1, 12);
+        f.anio = uiLeerEnteroEnRango("  Anio (2020-2035): ", 2020, 2035);
 
-        printf("ingresar Mes: ");
-        scanf("%d", &f.mes);
-
-        printf("Ingresar anio: ");
-        scanf("%d", &f.anio);
-
-        if (validarFecha(f) == 0) {
-                printf("Fecha invalida, intente nuevamente.\n\n");
+        if (fechaEsValida(f)) {
+            valida = 1;
+        } else {
+            uiMensajeError("La fecha ingresada no existe en el calendario. Intente nuevamente.");
         }
-
-    }while(validarFecha(f) == 0);
-
+    }
 
     return f;
 }
 
-
-
-int validarFecha(Fecha f) {
-    int diaValido = 0;
-    int mesValido = 0;
-    int anioValido = 0;
-    int maxDias = 31;
-
-    // Validar anio
-    if (f.anio >= 2000 && f.anio <= 2050) {
-        anioValido = 1;
-    }
-
-    // Validar mes
-    if (f.mes >= 1 && f.mes <= 12) {
-        mesValido = 1;
-
-        // Ajustar el maximo de dias segun el mes
-        if (f.mes == 4 || f.mes == 6 || f.mes == 9 || f.mes == 11) {
-            maxDias = 30;
-        } else if (f.mes == 2) {
-            if (esAnioBisiesto(f.anio)) {
-                maxDias = 29;
-            } else {
-                maxDias = 28;
-            }
-        }
-    }
-
-    // Validar dia usando el maximo correspondiente a ese mes
-    if (f.dia > 0 && f.dia <= maxDias) {
-        diaValido = 1;
-    }
-
-    // Validacion integral
-    if (diaValido && mesValido && anioValido) {
-        return 1;
-    }
-
-    return 0;
-}
-
-
-
-int esAnioBisiesto(int anio){
-    if((anio % 4 == 0 && anio % 100 != 0) || (anio % 400 == 0)){
-        return 1;
-    }
-
-    return 0;
-}
-
-
-
-void mostrarFecha(Fecha f) {
+/* Imprime una fecha con formato DD/MM/AAAA */
+void fechaMostrar(Fecha f) {
     printf("%02d/%02d/%04d", f.dia, f.mes, f.anio);
 }
 
-
-Fecha obtenerFechaActual(){
-    Fecha f;
-
-    // time(NULL) captura los segundos actuales del reloj del sistema
-    time_t t = time(NULL);
-
-    // localtime() convierte esos segundos en dia, mes y anio locales
-    struct tm *tiempoLocal = localtime(&t);
-
-    f.dia = tiempoLocal->tm_mday;
-    f.mes = tiempoLocal->tm_mon + 1;       // tm_mon va de 0 (enero) a 11 (diciembre)
-    f.anio = tiempoLocal->tm_year + 1900;  // tm_year cuenta anios desde 1900
-
-    return f;
+/* Retorna 1 si la fecha pertenece al mes y anio indicados, 0 en caso contrario */
+int fechaCoincideMesAnio(Fecha f, int mes, int anio) {
+    return (f.mes == mes && f.anio == anio);
 }

@@ -1,0 +1,26 @@
+# depslib dependency file v1.0
+1795451313 source:c:\users\vladi\desktop\programacion en c\proyecto_final\main.c
+	<stdio.h>
+	"ui.h"
+	"seed.h"
+	"usuario.h"
+	"persona.h"
+	"videojuego.h"
+	"transaccion.h"
+
+1795446193 c:\users\vladi\desktop\programacion en c\proyecto_final\ui.h
+
+1795446307 c:\users\vladi\desktop\programacion en c\proyecto_final\seed.h
+
+1795450272 c:\users\vladi\desktop\programacion en c\proyecto_final\usuario.h
+	"persona.h"
+
+1795450268 c:\users\vladi\desktop\programacion en c\proyecto_final\persona.h
+
+1795451233 c:\users\vladi\desktop\programacion en c\proyecto_final\videojuego.h
+
+1795451292 c:\users\vladi\desktop\programacion en c\proyecto_final\transaccion.h
+	"fecha.h"
+
+1795446198 c:\users\vladi\desktop\programacion en c\proyecto_final\fecha.h
+

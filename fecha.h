@@ -7,12 +7,10 @@ typedef struct stFecha {
     int anio;
 } Fecha;
 
-
-//Prototipos
-Fecha cargarFecha();
-int validarFecha(Fecha f);
-void mostrarFecha(Fecha f);
-int esAnioBisiesto(int anio);
-Fecha obtenerFechaActual();
+/* Carga, validacion, visualizacion y comparacion de fechas */
+Fecha fechaCargar(const char prompt[]);
+int fechaEsValida(Fecha f);
+void fechaMostrar(Fecha f);
+int fechaCoincideMesAnio(Fecha f, int mes, int anio);
 
 #endif
