@@ -18,17 +18,26 @@ typedef struct stPersona {
     int activo;
 } Persona;
 
-/* Funciones base de Persona (Fase 1) */
-long personaContarRegistrosArchivo(const char nombreArchivo[]);
+/* Funciones base de Persona */
+int personaContarRegistrosArchivo(char nombreArchivo[]);
 void personaMostrarResumen(Persona p);
 void personaMostrarDetalle(Persona p);
 
-/* ABM, busqueda y carga dinamica con realloc (Fase 2) */
-int personaBuscarPorDni(const char nombreArchivo[], const char dniBuscado[], Persona *encontrada);
-int personaAgregar(const char nombreArchivo[], Persona nueva);
-int personaModificar(const char nombreArchivo[], const char dniBuscado[], Persona datosActualizados);
-int personaBajaLogica(const char nombreArchivo[], const char dniBuscado[]);
-void personaCargarTodasRealloc(const char nombreArchivo[], Persona **arr, int *validos, int *dim);
-void personaMenuGestion(const char nombreArchivo[], const char usuarioActivo[], const char rolActivo[]);
+/* ABM, busqueda y carga dinamica con realloc */
+int personaExisteDniEnArchivo(char nombreArchivo[], char dniBuscado[]);
+int personaBuscarPorDni(char nombreArchivo[], char dniBuscado[], Persona *encontrada);
+int personaAgregar(char nombreArchivo[], Persona nueva);
+int personaModificar(char nombreArchivo[], char dniBuscado[], Persona datosActualizados);
+int personaBajaLogica(char nombreArchivo[], char dniBuscado[]);
+void personaCargarTodasRealloc(char nombreArchivo[], Persona **arr, int *validos, int *dim);
+
+/* Interfaz interactiva de Persona */
+void personaSeleccionarRol(char destinoRol[]);
+void personaAltaInteractiva(char nombreArchivo[], int esAdmin);
+void personaModificarInteractiva(char nombreArchivo[], int esAdmin);
+void personaBajaInteractiva(char nombreArchivo[]);
+void personaListarInteractivo(char nombreArchivo[]);
+void personaVerDetalleInteractivo(char nombreArchivo[]);
+void personaMenuGestion(char nombreArchivo[], char usuarioActivo[], char rolActivo[], int esAdmin);
 
 #endif

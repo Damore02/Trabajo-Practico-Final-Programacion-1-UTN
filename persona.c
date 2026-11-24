@@ -5,9 +5,10 @@
 #include <string.h>
 
 /* Cuenta la cantidad total de registros Persona almacenados en el archivo binario */
-long personaContarRegistrosArchivo(const char nombreArchivo[]) {
+int personaContarRegistrosArchivo(char nombreArchivo[]) {
     FILE *archi = fopen(nombreArchivo, "rb");
-    long bytes = 0;
+    int bytes = 0;
+    int tam = sizeof(Persona);
 
     if (archi == NULL) {
         return 0;
@@ -21,41 +22,54 @@ long personaContarRegistrosArchivo(const char nombreArchivo[]) {
         return 0;
     }
 
-    return bytes / (long)sizeof(Persona);
+    return bytes / tam;
 }
 
 /* Imprime una fila resumen alineada para tablas de personas */
 void personaMostrarResumen(Persona p) {
-    const char *estado = (p.activo == PERSONA_ACTIVA) ? "Activo" : "Inactivo";
-    const char *colorEstado = (p.activo == PERSONA_ACTIVA) ? CLR_OK : CLR_ERROR;
+    char estado[15];
+    char colorEstado[15];
+
+    if (p.activo == PERSONA_ACTIVA) {
+        strcpy(estado, "Activo");
+        strcpy(colorEstado, CLR_OK);
+    } else {
+        strcpy(estado, "Inactivo");
+        strcpy(colorEstado, CLR_ERROR);
+    }
 
     printf("| %-14.14s | %-28.28s | %-11.11s | %s%-10.10s%s |\n",
            p.dni, p.nombre, p.rol, colorEstado, estado, CLR_RESET);
 }
 
-/* Imprime la ficha completa de una persona */
+/* Imprime la ficha completa de una persona dentro de una tarjeta ASCII */
 void personaMostrarDetalle(Persona p) {
-    const char *estado = (p.activo == PERSONA_ACTIVA) ? "Activo" : "Inactivo";
-    const char *colorEstado = (p.activo == PERSONA_ACTIVA) ? CLR_OK : CLR_ERROR;
+    char estado[15];
+    char colorEstado[15];
 
-    printf("%s", CLR_TITULO);
-    uiLinea('-', ANCHO_UI);
-    printf("  %sDETALLE DE PERSONA%s\n", CLR_SUBTIT, CLR_TITULO);
-    uiLinea('-', ANCHO_UI);
-    printf("%s", CLR_RESET);
-    printf("  DNI       : %s\n", p.dni);
-    printf("  Nombre    : %s\n", p.nombre);
-    printf("  Telefono  : %s\n", p.telefono);
-    printf("  Direccion : %s\n", p.direccion);
-    printf("  Rol       : %s\n", p.rol);
-    printf("  Estado    : %s%s%s\n", colorEstado, estado, CLR_RESET);
-    printf("%s", CLR_TENUE);
-    uiLinea('-', ANCHO_UI);
-    printf("%s", CLR_RESET);
+    if (p.activo == PERSONA_ACTIVA) {
+        strcpy(estado, "[ACTIVO]");
+        strcpy(colorEstado, CLR_OK);
+    } else {
+        strcpy(estado, "[INACTIVO]");
+        strcpy(colorEstado, CLR_ERROR);
+    }
+
+    uiAbrirCaja("FICHA DETALLADA DE PERSONA");
+    printf("%s|%s  Nombre    : %s%-58.58s%s  %s|%s\n",
+           CLR_TITULO, CLR_RESET, CLR_SUBTIT, p.nombre, CLR_RESET, CLR_TITULO, CLR_RESET);
+    uiSeparadorCaja();
+    printf("%s|%s  DNI       : %-24.24s  Rol    : %-23.23s  %s|%s\n",
+           CLR_TITULO, CLR_RESET, p.dni, p.rol, CLR_TITULO, CLR_RESET);
+    printf("%s|%s  Telefono  : %-24.24s  Estado : %s%-23.23s%s  %s|%s\n",
+           CLR_TITULO, CLR_RESET, p.telefono, colorEstado, estado, CLR_RESET, CLR_TITULO, CLR_RESET);
+    printf("%s|%s  Direccion : %-58.58s  %s|%s\n",
+           CLR_TITULO, CLR_RESET, p.direccion, CLR_TITULO, CLR_RESET);
+    uiCerrarCaja();
 }
 
 /* Busca una persona activa por DNI; si encontrada != NULL copia el registro */
-int personaBuscarPorDni(const char nombreArchivo[], const char dniBuscado[], Persona *encontrada) {
+int personaBuscarPorDni(char nombreArchivo[], char dniBuscado[], Persona *encontrada) {
     FILE *archi = fopen(nombreArchivo, "rb");
     Persona aux;
 
@@ -78,7 +92,7 @@ int personaBuscarPorDni(const char nombreArchivo[], const char dniBuscado[], Per
 }
 
 /* Verifica si un DNI ya existe en el archivo (activo o inactivo) para proteger unicidad */
-static int personaExisteDniEnArchivo(const char nombreArchivo[], const char dniBuscado[]) {
+int personaExisteDniEnArchivo(char nombreArchivo[], char dniBuscado[]) {
     FILE *archi = fopen(nombreArchivo, "rb");
     Persona aux;
 
@@ -98,9 +112,9 @@ static int personaExisteDniEnArchivo(const char nombreArchivo[], const char dniB
 }
 
 /* Da de alta una persona validando unicidad de DNI */
-int personaAgregar(const char nombreArchivo[], Persona nueva) {
+int personaAgregar(char nombreArchivo[], Persona nueva) {
     FILE *archi;
-    size_t escritos;
+    int escritos = 0;
 
     if (personaBuscarPorDni(nombreArchivo, nueva.dni, NULL) ||
         personaExisteDniEnArchivo(nombreArchivo, nueva.dni)) {
@@ -120,9 +134,10 @@ int personaAgregar(const char nombreArchivo[], Persona nueva) {
 }
 
 /* Modifica los datos de una persona activa in-place usando modo r+b y fseek */
-int personaModificar(const char nombreArchivo[], const char dniBuscado[], Persona datosActualizados) {
+int personaModificar(char nombreArchivo[], char dniBuscado[], Persona datosActualizados) {
     FILE *archi = fopen(nombreArchivo, "r+b");
     Persona aux;
+    int tam = sizeof(Persona);
 
     if (archi == NULL) {
         return 0;
@@ -132,7 +147,7 @@ int personaModificar(const char nombreArchivo[], const char dniBuscado[], Person
         if (aux.activo == PERSONA_ACTIVA && strcmp(aux.dni, dniBuscado) == 0) {
             strcpy(datosActualizados.dni, aux.dni);
             datosActualizados.activo = PERSONA_ACTIVA;
-            fseek(archi, -(long)sizeof(Persona), SEEK_CUR);
+            fseek(archi, -tam, SEEK_CUR);
             fwrite(&datosActualizados, sizeof(Persona), 1, archi);
             fclose(archi);
             return 1;
@@ -144,9 +159,10 @@ int personaModificar(const char nombreArchivo[], const char dniBuscado[], Person
 }
 
 /* Realiza la baja logica (activo = 0) de una persona activa en modo r+b */
-int personaBajaLogica(const char nombreArchivo[], const char dniBuscado[]) {
+int personaBajaLogica(char nombreArchivo[], char dniBuscado[]) {
     FILE *archi = fopen(nombreArchivo, "r+b");
     Persona aux;
+    int tam = sizeof(Persona);
 
     if (archi == NULL) {
         return 0;
@@ -155,7 +171,7 @@ int personaBajaLogica(const char nombreArchivo[], const char dniBuscado[]) {
     while (fread(&aux, sizeof(Persona), 1, archi) == 1) {
         if (aux.activo == PERSONA_ACTIVA && strcmp(aux.dni, dniBuscado) == 0) {
             aux.activo = PERSONA_INACTIVA;
-            fseek(archi, -(long)sizeof(Persona), SEEK_CUR);
+            fseek(archi, -tam, SEEK_CUR);
             fwrite(&aux, sizeof(Persona), 1, archi);
             fclose(archi);
             return 1;
@@ -167,7 +183,7 @@ int personaBajaLogica(const char nombreArchivo[], const char dniBuscado[]) {
 }
 
 /* Carga todas las personas activas en un arreglo dinamico usando realloc y puntero doble */
-void personaCargarTodasRealloc(const char nombreArchivo[], Persona **arr, int *validos, int *dim) {
+void personaCargarTodasRealloc(char nombreArchivo[], Persona **arr, int *validos, int *dim) {
     FILE *archi;
     Persona aux;
     Persona *temp;
@@ -182,7 +198,7 @@ void personaCargarTodasRealloc(const char nombreArchivo[], Persona **arr, int *v
         return;
     }
 
-    *arr = (Persona *)malloc((size_t)BLOQUE_PERSONAS * sizeof(Persona));
+    *arr = (Persona *)malloc(BLOQUE_PERSONAS * sizeof(Persona));
     if (*arr == NULL) {
         fclose(archi);
         uiMensajeError("No se pudo asignar memoria dinamica para personas.");
@@ -194,7 +210,7 @@ void personaCargarTodasRealloc(const char nombreArchivo[], Persona **arr, int *v
         if (aux.activo == PERSONA_ACTIVA) {
             if (*validos == *dim) {
                 nuevaDim = *dim + BLOQUE_PERSONAS;
-                temp = (Persona *)realloc(*arr, (size_t)nuevaDim * sizeof(Persona));
+                temp = (Persona *)realloc(*arr, nuevaDim * sizeof(Persona));
                 if (temp == NULL) {
                     uiMensajeError("Error al ampliar memoria con realloc para personas.");
                     fclose(archi);
@@ -212,13 +228,13 @@ void personaCargarTodasRealloc(const char nombreArchivo[], Persona **arr, int *v
 }
 
 /* Permite seleccionar un rol estandarizado evitando errores de escritura */
-static void personaSeleccionarRol(char destinoRol[]) {
+void personaSeleccionarRol(char destinoRol[]) {
     int op;
 
     printf("  Seleccione el rol:\n");
-    printf("    [1] Cliente (%s)\n", ROL_CLIENTE);
-    printf("    [2] Empleado (%s)\n", ROL_EMPLEADO);
-    printf("    [3] Administrador (%s)\n", ROL_ADMIN);
+    printf("    %s[1]%s Cliente (%s)\n", CLR_SUBTIT, CLR_RESET, ROL_CLIENTE);
+    printf("    %s[2]%s Empleado (%s)\n", CLR_SUBTIT, CLR_RESET, ROL_EMPLEADO);
+    printf("    %s[3]%s Administrador (%s)\n", CLR_SUBTIT, CLR_RESET, ROL_ADMIN);
     op = uiLeerEnteroEnRango("  Rol > ", 1, 3);
 
     if (op == 1) {
@@ -230,73 +246,138 @@ static void personaSeleccionarRol(char destinoRol[]) {
     }
 }
 
-/* Flujo interactivo para alta de nueva persona (Req. 3b) */
-static void personaAltaInteractiva(const char nombreArchivo[]) {
+/* Flujo interactivo guiado con vista previa para alta de nueva persona (Req. 3b) */
+void personaAltaInteractiva(char nombreArchivo[], int esAdmin) {
     Persona nueva;
 
-    uiTituloSeccion("ALTA DE PERSONA");
-    uiLeerTexto("  DNI (sin puntos): ", nueva.dni, (int)sizeof(nueva.dni));
+    uiAbrirCaja("ALTA DE NUEVA PERSONA - FORMULARIO GUIADO");
+    printf("  %sPaso 1/5 - Identificacion%s\n", CLR_TITULO, CLR_RESET);
+    uiLeerTexto("  DNI (sin puntos) : ", nueva.dni, 15);
 
     if (personaExisteDniEnArchivo(nombreArchivo, nueva.dni)) {
         uiMensajeError("Ya existe una persona registrada con ese DNI.");
         return;
     }
 
-    uiLeerTexto("  Nombre completo : ", nueva.nombre, (int)sizeof(nueva.nombre));
-    uiLeerTexto("  Telefono        : ", nueva.telefono, (int)sizeof(nueva.telefono));
-    uiLeerTexto("  Direccion       : ", nueva.direccion, (int)sizeof(nueva.direccion));
-    personaSeleccionarRol(nueva.rol);
+    printf("\n  %sPaso 2/5 - Datos Personales%s\n", CLR_TITULO, CLR_RESET);
+    uiLeerTexto("  Nombre completo  : ", nueva.nombre, 50);
+
+    printf("\n  %sPaso 3/5 - Contacto%s\n", CLR_TITULO, CLR_RESET);
+    uiLeerTexto("  Telefono         : ", nueva.telefono, 20);
+
+    printf("\n  %sPaso 4/5 - Domicilio%s\n", CLR_TITULO, CLR_RESET);
+    uiLeerTexto("  Direccion        : ", nueva.direccion, 30);
+
+    printf("\n  %sPaso 5/5 - Rol en Pixel Plus%s\n", CLR_TITULO, CLR_RESET);
+    if (esAdmin) {
+        personaSeleccionarRol(nueva.rol);
+    } else {
+        strcpy(nueva.rol, ROL_CLIENTE);
+        printf("  Rol asignado automaticamente: %s%s%s (solo admin crea empleados/admins)\n",
+               CLR_SUBTIT, ROL_CLIENTE, CLR_RESET);
+    }
     nueva.activo = PERSONA_ACTIVA;
 
-    if (personaAgregar(nombreArchivo, nueva)) {
-        uiMensajeExito("Persona registrada correctamente en personas.bin.");
+    printf("\n  %sVISTA PREVIA ANTES DE GUARDAR:%s", CLR_ALERTA, CLR_RESET);
+    personaMostrarDetalle(nueva);
+
+    if (uiConfirmar("Confirma el alta de esta persona en personas.bin?")) {
+        if (personaAgregar(nombreArchivo, nueva)) {
+            uiMensajeExito("Persona registrada correctamente en personas.bin.");
+        } else {
+            uiMensajeError("No se pudo registrar la persona.");
+        }
     } else {
-        uiMensajeError("No se pudo registrar la persona.");
+        uiMensajeAlerta("Alta cancelada por el usuario.");
     }
 }
 
-/* Flujo interactivo para modificar una persona existente (Req. 3b) */
-static void personaModificarInteractiva(const char nombreArchivo[]) {
+/* Flujo interactivo con menu por campo para modificar una persona (Req. 3b) */
+void personaModificarInteractiva(char nombreArchivo[], int esAdmin) {
     char dniBuscado[15];
     Persona actual;
+    int opcion;
+    int maxOpcion;
+    int huboCambios = 0;
 
     uiTituloSeccion("MODIFICAR PERSONA");
-    uiLeerTexto("  Ingrese DNI de la persona a modificar: ", dniBuscado, (int)sizeof(dniBuscado));
+    uiLeerTexto("  Ingrese DNI de la persona a modificar: ", dniBuscado, 15);
 
     if (!personaBuscarPorDni(nombreArchivo, dniBuscado, &actual)) {
         uiMensajeError("No se encontro ninguna persona activa con ese DNI.");
         return;
     }
 
-    personaMostrarDetalle(actual);
-
-    if (uiConfirmar("Desea modificar el nombre?")) {
-        uiLeerTexto("  Nuevo nombre   : ", actual.nombre, (int)sizeof(actual.nombre));
-    }
-    if (uiConfirmar("Desea modificar el telefono?")) {
-        uiLeerTexto("  Nuevo telefono : ", actual.telefono, (int)sizeof(actual.telefono));
-    }
-    if (uiConfirmar("Desea modificar la direccion?")) {
-        uiLeerTexto("  Nueva direccion: ", actual.direccion, (int)sizeof(actual.direccion));
-    }
-    if (uiConfirmar("Desea modificar el rol?")) {
-        personaSeleccionarRol(actual.rol);
+    if (!esAdmin && strcmp(actual.rol, ROL_CLIENTE) != 0) {
+        uiMensajeError("Acceso restringido. Un empleado solo puede modificar datos de clientes.");
+        return;
     }
 
-    if (personaModificar(nombreArchivo, dniBuscado, actual)) {
-        uiMensajeExito("Datos de la persona actualizados correctamente.");
-    } else {
-        uiMensajeError("No se pudieron actualizar los datos.");
-    }
+    maxOpcion = esAdmin ? 5 : 4;
+
+    do {
+        uiLimpiarPantalla();
+        uiMostrarBannerPrincipal();
+        printf("\n  %sEDITOR INTERACTIVO DE PERSONA (DNI: %s)%s", CLR_SUBTIT, actual.dni, CLR_RESET);
+        personaMostrarDetalle(actual);
+
+        printf("\n%s", CLR_TITULO);
+        uiLinea('-', ANCHO_UI);
+        printf("%s", CLR_RESET);
+        printf("  %s[1]%s Editar Nombre         %s[3]%s Editar Direccion\n",
+               CLR_SUBTIT, CLR_RESET, CLR_SUBTIT, CLR_RESET);
+        if (esAdmin) {
+            printf("  %s[2]%s Editar Telefono       %s[4]%s Cambiar Rol\n",
+                   CLR_SUBTIT, CLR_RESET, CLR_SUBTIT, CLR_RESET);
+            printf("  %s[5]%s %sGuardar Cambios%s       %s[0]%s Cancelar sin Guardar\n",
+                   CLR_SUBTIT, CLR_RESET, CLR_OK, CLR_RESET, CLR_SUBTIT, CLR_RESET);
+        } else {
+            printf("  %s[2]%s Editar Telefono       %s[4]%s %sGuardar Cambios%s\n",
+                   CLR_SUBTIT, CLR_RESET, CLR_SUBTIT, CLR_RESET, CLR_OK, CLR_RESET);
+            printf("  %s[0]%s Cancelar sin Guardar\n", CLR_SUBTIT, CLR_RESET);
+        }
+        printf("%s", CLR_TENUE);
+        uiLinea('-', ANCHO_UI);
+        printf("%s", CLR_RESET);
+
+        opcion = uiLeerEnteroEnRango("  Que campo desea editar? > ", 0, maxOpcion);
+
+        if (opcion == 1) {
+            uiLeerTexto("  Nuevo nombre    : ", actual.nombre, 50);
+            huboCambios = 1;
+        } else if (opcion == 2) {
+            uiLeerTexto("  Nuevo telefono  : ", actual.telefono, 20);
+            huboCambios = 1;
+        } else if (opcion == 3) {
+            uiLeerTexto("  Nueva direccion : ", actual.direccion, 30);
+            huboCambios = 1;
+        } else if (esAdmin && opcion == 4) {
+            personaSeleccionarRol(actual.rol);
+            huboCambios = 1;
+        } else if (opcion == maxOpcion) {
+            if (huboCambios) {
+                if (personaModificar(nombreArchivo, dniBuscado, actual)) {
+                    uiMensajeExito("Datos de la persona actualizados correctamente.");
+                } else {
+                    uiMensajeError("No se pudieron actualizar los datos.");
+                }
+            } else {
+                uiMensajeAlerta("No se realizaron cambios sobre la persona.");
+            }
+            opcion = 0;
+        } else if (opcion == 0 && huboCambios) {
+            uiMensajeAlerta("Cambios descartados. No se modifico personas.bin.");
+        }
+    } while (opcion != 0);
 }
 
 /* Flujo interactivo para baja logica de persona */
-static void personaBajaInteractiva(const char nombreArchivo[]) {
+void personaBajaInteractiva(char nombreArchivo[]) {
     char dniBuscado[15];
     Persona actual;
 
     uiTituloSeccion("BAJA LOGICA DE PERSONA");
-    uiLeerTexto("  Ingrese DNI de la persona a dar de baja: ", dniBuscado, (int)sizeof(dniBuscado));
+    uiLeerTexto("  Ingrese DNI de la persona a dar de baja: ", dniBuscado, 15);
 
     if (!personaBuscarPorDni(nombreArchivo, dniBuscado, &actual)) {
         uiMensajeError("No se encontro ninguna persona activa con ese DNI.");
@@ -316,7 +397,7 @@ static void personaBajaInteractiva(const char nombreArchivo[]) {
 }
 
 /* Muestra el listado resumen de personas cargadas dinamicamente con realloc (Req. 3c) */
-static void personaListarInteractivo(const char nombreArchivo[]) {
+void personaListarInteractivo(char nombreArchivo[]) {
     Persona *lista = NULL;
     int validos = 0;
     int dim = 0;
@@ -354,12 +435,12 @@ static void personaListarInteractivo(const char nombreArchivo[]) {
 }
 
 /* Consulta detallada por DNI (Req. 3d) */
-static void personaVerDetalleInteractivo(const char nombreArchivo[]) {
+void personaVerDetalleInteractivo(char nombreArchivo[]) {
     char dniBuscado[15];
     Persona encontrada;
 
     uiTituloSeccion("BUSCAR PERSONA POR DNI");
-    uiLeerTexto("  Ingrese DNI a consultar: ", dniBuscado, (int)sizeof(dniBuscado));
+    uiLeerTexto("  Ingrese DNI a consultar: ", dniBuscado, 15);
 
     if (personaBuscarPorDni(nombreArchivo, dniBuscado, &encontrada)) {
         personaMostrarDetalle(encontrada);
@@ -368,8 +449,8 @@ static void personaVerDetalleInteractivo(const char nombreArchivo[]) {
     }
 }
 
-/* Submenu interactivo de gestion de personas */
-void personaMenuGestion(const char nombreArchivo[], const char usuarioActivo[], const char rolActivo[]) {
+/* Submenu interactivo de gestion de personas con control de permisos por rol */
+void personaMenuGestion(char nombreArchivo[], char usuarioActivo[], char rolActivo[], int esAdmin) {
     int opcion;
 
     do {
@@ -378,9 +459,15 @@ void personaMenuGestion(const char nombreArchivo[], const char usuarioActivo[], 
         uiMostrarBarraSesion(usuarioActivo, rolActivo);
         uiTituloSeccion("GESTION DE PERSONAS (CLIENTES Y EMPLEADOS)");
 
-        printf("  %s[1]%s Agregar Persona\n", CLR_SUBTIT, CLR_RESET);
-        printf("  %s[2]%s Modificar Persona\n", CLR_SUBTIT, CLR_RESET);
-        printf("  %s[3]%s Baja Logica de Persona\n", CLR_SUBTIT, CLR_RESET);
+        if (esAdmin) {
+            printf("  %s[1]%s Agregar Persona (Cliente / Empleado / Admin)\n", CLR_SUBTIT, CLR_RESET);
+            printf("  %s[2]%s Modificar Persona\n", CLR_SUBTIT, CLR_RESET);
+            printf("  %s[3]%s Baja Logica de Persona\n", CLR_SUBTIT, CLR_RESET);
+        } else {
+            printf("  %s[1]%s Agregar Cliente\n", CLR_SUBTIT, CLR_RESET);
+            printf("  %s[2]%s Modificar Cliente\n", CLR_SUBTIT, CLR_RESET);
+            printf("  %s[3] Baja Logica de Persona (Solo Admin)%s\n", CLR_TENUE, CLR_RESET);
+        }
         printf("  %s[4]%s Ver Listado de Personas (Resumen)\n", CLR_SUBTIT, CLR_RESET);
         printf("  %s[5]%s Ver Info Detallada por DNI\n", CLR_SUBTIT, CLR_RESET);
         printf("  %s[0]%s Volver al Menu Principal\n", CLR_SUBTIT, CLR_RESET);
@@ -392,15 +479,19 @@ void personaMenuGestion(const char nombreArchivo[], const char usuarioActivo[], 
 
         switch (opcion) {
             case 1:
-                personaAltaInteractiva(nombreArchivo);
+                personaAltaInteractiva(nombreArchivo, esAdmin);
                 uiPausar();
                 break;
             case 2:
-                personaModificarInteractiva(nombreArchivo);
+                personaModificarInteractiva(nombreArchivo, esAdmin);
                 uiPausar();
                 break;
             case 3:
-                personaBajaInteractiva(nombreArchivo);
+                if (esAdmin) {
+                    personaBajaInteractiva(nombreArchivo);
+                } else {
+                    uiMensajeError("Acceso restringido. Solo administradores pueden dar de baja personas.");
+                }
                 uiPausar();
                 break;
             case 4:

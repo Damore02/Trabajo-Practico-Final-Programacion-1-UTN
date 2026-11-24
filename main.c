@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "ui.h"
 #include "seed.h"
 #include "usuario.h"
@@ -6,14 +7,50 @@
 #include "videojuego.h"
 #include "transaccion.h"
 
-void mostrarMenuPrincipal(Usuario sesionActiva);
+void mostrarMenuPrincipal(Usuario sesionActiva, int esAdmin, int esCliente);
 
-/* Imprime las opciones del menu principal */
+/* Imprime las opciones del menu principal adaptadas al rol activo */
+void mostrarMenuPrincipal(Usuario sesionActiva, int esAdmin, int esCliente) {
+    uiLimpiarPantalla();
+    uiMostrarBannerPrincipal();
+    uiMostrarBarraSesion(sesionActiva.usuario, sesionActiva.persona.rol);
+    uiTituloSeccion("MENU PRINCIPAL - PIXEL PLUS");
+
+    if (esCliente) {
+        printf("  %s[1]%s Catalogo de Videojuegos (Solo Consulta)\n", CLR_SUBTIT, CLR_RESET);
+        printf("  %s[2] Gestion de Personas (Sin acceso)%s\n", CLR_TENUE, CLR_RESET);
+        printf("  %s[3] Ventas y Transacciones (Sin acceso)%s\n", CLR_TENUE, CLR_RESET);
+        printf("  %s[4] Reportes Gerenciales (Sin acceso)%s\n", CLR_TENUE, CLR_RESET);
+        printf("  %s[5] Gestion de Usuarios (Solo Admin)%s\n", CLR_TENUE, CLR_RESET);
+        printf("  %s[6] Modulo Extra de Promocion (Sin acceso)%s\n", CLR_TENUE, CLR_RESET);
+    } else if (esAdmin) {
+        printf("  %s[1]%s Gestion de Inventario (Videojuegos)\n", CLR_SUBTIT, CLR_RESET);
+        printf("  %s[2]%s Gestion de Personas (Clientes y Empleados)\n", CLR_SUBTIT, CLR_RESET);
+        printf("  %s[3]%s Ventas y Transacciones\n", CLR_SUBTIT, CLR_RESET);
+        printf("  %s[4]%s Reportes Gerenciales (Recaudacion / Mayor Ganancia / Stock Critico)\n",
+               CLR_SUBTIT, CLR_RESET);
+        printf("  %s[5]%s Gestion de Usuarios (Solo Admin)\n", CLR_SUBTIT, CLR_RESET);
+        printf("  %s[6]%s Modulo Extra de Promocion\n", CLR_SUBTIT, CLR_RESET);
+    } else {
+        printf("  %s[1]%s Consulta de Inventario (Videojuegos)\n", CLR_SUBTIT, CLR_RESET);
+        printf("  %s[2]%s Gestion de Clientes y Consultas\n", CLR_SUBTIT, CLR_RESET);
+        printf("  %s[3]%s Ventas y Transacciones\n", CLR_SUBTIT, CLR_RESET);
+        printf("  %s[4]%s Reportes Operativos (Stock Critico)\n", CLR_SUBTIT, CLR_RESET);
+        printf("  %s[5] Gestion de Usuarios (Solo Admin)%s\n", CLR_TENUE, CLR_RESET);
+        printf("  %s[6]%s Modulo Extra de Promocion\n", CLR_SUBTIT, CLR_RESET);
+    }
+
+    printf("  %s[0]%s Cerrar Sesion y Salir\n", CLR_SUBTIT, CLR_RESET);
+    printf("%s", CLR_TENUE);
+    uiLinea('-', ANCHO_UI);
+    printf("%s", CLR_RESET);
+}
 
 int main(void) {
     Usuario sesionActiva;
     int opcion;
     int esAdmin;
+    int esCliente;
 
     seedInicializarArchivosSiNoExisten();
 
@@ -27,9 +64,10 @@ int main(void) {
 
     uiPausar();
     esAdmin = usuarioEsAdmin(sesionActiva);
+    esCliente = (strcmp(sesionActiva.persona.rol, ROL_CLIENTE) == 0);
 
     do {
-        mostrarMenuPrincipal(sesionActiva);
+        mostrarMenuPrincipal(sesionActiva, esAdmin, esCliente);
         opcion = uiLeerEnteroEnRango("  Seleccione una opcion > ", 0, 6);
 
         switch (opcion) {
@@ -40,19 +78,36 @@ int main(void) {
                                       esAdmin);
                 break;
             case 2:
-                personaMenuGestion(ARCHIVO_PERSONAS,
-                                   sesionActiva.usuario,
-                                   sesionActiva.persona.rol);
+                if (esCliente) {
+                    uiMensajeError("Acceso restringido. Un cliente no puede acceder a la gestion de personas.");
+                    uiPausar();
+                } else {
+                    personaMenuGestion(ARCHIVO_PERSONAS,
+                                       sesionActiva.usuario,
+                                       sesionActiva.persona.rol,
+                                       esAdmin);
+                }
                 break;
             case 3:
-                transaccionMenuVentas(ARCHIVO_TRANSACCIONES,
-                                      ARCHIVO_VIDEOJUEGOS,
-                                      ARCHIVO_PERSONAS,
-                                      sesionActiva.persona.dni);
+                if (esCliente) {
+                    uiMensajeError("Acceso restringido. Un cliente no puede registrar ni consultar ventas.");
+                    uiPausar();
+                } else {
+                    transaccionMenuVentas(ARCHIVO_TRANSACCIONES,
+                                          ARCHIVO_VIDEOJUEGOS,
+                                          ARCHIVO_PERSONAS,
+                                          sesionActiva.persona.dni);
+                }
                 break;
             case 4:
-                transaccionMenuReportes(ARCHIVO_TRANSACCIONES,
-                                        ARCHIVO_VIDEOJUEGOS);
+                if (esCliente) {
+                    uiMensajeError("Acceso restringido. Un cliente no puede acceder a reportes.");
+                    uiPausar();
+                } else {
+                    transaccionMenuReportes(ARCHIVO_TRANSACCIONES,
+                                            ARCHIVO_VIDEOJUEGOS,
+                                            esAdmin);
+                }
                 break;
             case 5:
                 if (esAdmin) {
@@ -63,7 +118,11 @@ int main(void) {
                 uiPausar();
                 break;
             case 6:
-                uiMensajeAlerta("Modulo Extra de Promocion disponible en Fase 4.");
+                if (esCliente) {
+                    uiMensajeError("Acceso restringido para rol cliente.");
+                } else {
+                    uiMensajeAlerta("Modulo Extra de Promocion disponible en Fase 4.");
+                }
                 uiPausar();
                 break;
             case 0:
@@ -78,24 +137,3 @@ int main(void) {
 
     return 0;
 }
-
-void mostrarMenuPrincipal(Usuario sesionActiva) {
-    uiLimpiarPantalla();
-    uiMostrarBannerPrincipal();
-    uiMostrarBarraSesion(sesionActiva.usuario, sesionActiva.persona.rol);
-    uiTituloSeccion("MENU PRINCIPAL - PIXEL PLUS");
-
-    printf("  %s[1]%s Gestion de Inventario (Videojuegos)\n", CLR_SUBTIT, CLR_RESET);
-    printf("  %s[2]%s Gestion de Personas (Clientes y Empleados)\n", CLR_SUBTIT, CLR_RESET);
-    printf("  %s[3]%s Ventas y Transacciones\n", CLR_SUBTIT, CLR_RESET);
-    printf("  %s[4]%s Reportes Gerenciales (Recaudacion / Mayor Ganancia / Stock Critico)\n",
-           CLR_SUBTIT, CLR_RESET);
-    printf("  %s[5]%s Gestion de Usuarios (Solo Admin)\n", CLR_SUBTIT, CLR_RESET);
-    printf("  %s[6]%s Modulo Extra de Promocion\n", CLR_SUBTIT, CLR_RESET);
-    printf("  %s[0]%s Cerrar Sesion y Salir\n", CLR_SUBTIT, CLR_RESET);
-    printf("%s", CLR_TENUE);
-    uiLinea('-', ANCHO_UI);
-    printf("%s", CLR_RESET);
-}
-
-

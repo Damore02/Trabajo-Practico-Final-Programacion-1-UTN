@@ -15,15 +15,17 @@ typedef struct stUsuario {
     int activo;
 } Usuario;
 
-/* Funciones base de Usuario (Fase 1) */
-long usuarioContarRegistrosArchivo(const char nombreArchivo[]);
+/* Funciones base de Usuario */
+int usuarioContarRegistrosArchivo(char nombreArchivo[]);
+int usuarioContarActivos(char nombreArchivo[]);
 int usuarioEsAdmin(Usuario u);
 void usuarioMostrarResumen(Usuario u);
 
-/* Autenticacion, busqueda y alta de usuarios (Fase 2) */
-int usuarioLogin(const char nombreArchivo[], Usuario *sesionActiva);
-int usuarioBuscarPorNombre(const char nombreArchivo[], const char nombreUsuario[], Usuario *encontrado);
-int usuarioAgregar(const char archiUsuarios[], const char archiPersonas[], Usuario nuevo);
-void usuarioAltaInteractiva(const char archiUsuarios[], const char archiPersonas[]);
+/* Autenticacion, busqueda y alta de usuarios */
+int usuarioCrearAdminInicial(char nombreArchivo[]);
+int usuarioLogin(char nombreArchivo[], Usuario *sesionActiva);
+int usuarioBuscarPorNombre(char nombreArchivo[], char nombreUsuario[], Usuario *encontrado);
+int usuarioAgregar(char archiUsuarios[], char archiPersonas[], Usuario nuevo);
+void usuarioAltaInteractiva(char archiUsuarios[], char archiPersonas[]);
 
 #endif

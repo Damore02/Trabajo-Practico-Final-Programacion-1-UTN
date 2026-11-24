@@ -8,7 +8,9 @@ typedef struct stFecha {
 } Fecha;
 
 /* Carga, validacion, visualizacion y comparacion de fechas */
-Fecha fechaCargar(const char prompt[]);
+int fechaEsBisiesto(int anio);
+int fechaDiasDelMes(int mes, int anio);
+Fecha fechaCargar(char prompt[]);
 int fechaEsValida(Fecha f);
 void fechaMostrar(Fecha f);
 int fechaCoincideMesAnio(Fecha f, int mes, int anio);

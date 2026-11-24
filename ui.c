@@ -36,6 +36,41 @@ void uiLinea(char simbolo, int ancho) {
     putchar('\n');
 }
 
+/* Abre un recuadro estilizado tipo tarjeta con titulo encuadrado */
+void uiAbrirCaja(char titulo[]) {
+    printf("\n%s+", CLR_TITULO);
+    for (int i = 0; i < ANCHO_UI - 2; i++) {
+        putchar('=');
+    }
+    printf("+\n");
+    printf("|  %s%-70.70s%s  |\n", CLR_SUBTIT, titulo, CLR_TITULO);
+    printf("+");
+    for (int i = 0; i < ANCHO_UI - 2; i++) {
+        putchar('-');
+    }
+    printf("+%s\n", CLR_RESET);
+}
+
+/* Dibuja una linea divisoria interna dentro de una tarjeta */
+void uiSeparadorCaja(void) {
+    int i;
+    printf("%s+", CLR_TENUE);
+    for (i = 0; i < ANCHO_UI - 2; i++) {
+        putchar('-');
+    }
+    printf("+%s\n", CLR_RESET);
+}
+
+/* Cierra un recuadro estilizado tipo tarjeta */
+void uiCerrarCaja(void) {
+    int i;
+    printf("%s+", CLR_TITULO);
+    for (i = 0; i < ANCHO_UI - 2; i++) {
+        putchar('=');
+    }
+    printf("+%s\n", CLR_RESET);
+}
+
 /* Muestra el logotipo ASCII principal de Pixel Plus */
 void uiMostrarBannerPrincipal(void) {
     printf("%s", CLR_TITULO);
@@ -53,7 +88,7 @@ void uiMostrarBannerPrincipal(void) {
 }
 
 /* Muestra la barra fija superior con los datos de la sesion activa */
-void uiMostrarBarraSesion(const char usuario[], const char rol[]) {
+void uiMostrarBarraSesion(char usuario[], char rol[]) {
     printf("%s Usuario activo: %-20.20s Rol: %-14.14s Estado: %sConectado%s\n",
            CLR_SUBTIT, usuario, rol, CLR_OK, CLR_RESET);
     printf("%s", CLR_TENUE);
@@ -62,7 +97,7 @@ void uiMostrarBarraSesion(const char usuario[], const char rol[]) {
 }
 
 /* Muestra un encabezado encuadrado homogeneo para cada pantalla */
-void uiTituloSeccion(const char titulo[]) {
+void uiTituloSeccion(char titulo[]) {
     printf("\n%s", CLR_TITULO);
     uiLinea('-', ANCHO_UI);
     printf("  %s%s%s\n", CLR_SUBTIT, titulo, CLR_TITULO);
@@ -71,22 +106,22 @@ void uiTituloSeccion(const char titulo[]) {
 }
 
 /* Muestra un mensaje de confirmacion en verde */
-void uiMensajeExito(const char msg[]) {
+void uiMensajeExito(char msg[]) {
     printf("%s[OK] %s%s\n", CLR_OK, msg, CLR_RESET);
 }
 
 /* Muestra una alerta de negocio en amarillo */
-void uiMensajeAlerta(const char msg[]) {
+void uiMensajeAlerta(char msg[]) {
     printf("%s[ALERTA] %s%s\n", CLR_ALERTA, msg, CLR_RESET);
 }
 
 /* Muestra un error de validacion o ejecucion en rojo */
-void uiMensajeError(const char msg[]) {
+void uiMensajeError(char msg[]) {
     printf("%s[ERROR] %s%s\n", CLR_ERROR, msg, CLR_RESET);
 }
 
 /* Lee y valida un numero entero dentro de [min, max] */
-int uiLeerEnteroEnRango(const char prompt[], int min, int max) {
+int uiLeerEnteroEnRango(char prompt[], int min, int max) {
     int valor = 0;
     int leido = 0;
     int valido = 0;
@@ -125,7 +160,7 @@ int uiLeerEnteroEnRango(const char prompt[], int min, int max) {
 }
 
 /* Lee y valida un numero decimal mayor o igual a min */
-float uiLeerFloatMinimo(const char prompt[], float min) {
+float uiLeerFloatMinimo(char prompt[], float min) {
     float valor = 0.0f;
     int leido = 0;
     int valido = 0;
@@ -164,7 +199,7 @@ float uiLeerFloatMinimo(const char prompt[], float min) {
 }
 
 /* Lee una cadena con espacios respetando tamMaximo - 1 sin gets ni fflush */
-void uiLeerTexto(const char prompt[], char destino[], int tamMaximo) {
+void uiLeerTexto(char prompt[], char destino[], int tamMaximo) {
     char formato[32];
     int leido = 0;
 
@@ -192,7 +227,7 @@ void uiLeerTexto(const char prompt[], char destino[], int tamMaximo) {
 }
 
 /* Solicita una confirmacion binaria (s/n) y retorna 1 (si) o 0 (no) */
-int uiConfirmar(const char prompt[]) {
+int uiConfirmar(char prompt[]) {
     char opcion = '\0';
     int leido = 0;
     int siguiente = 0;
@@ -215,7 +250,7 @@ int uiConfirmar(const char prompt[]) {
             uiLimpiarBuffer();
             uiMensajeError("Responda unicamente con 's' o 'n'.");
         } else {
-            opcion = (char)tolower((unsigned char)opcion);
+            opcion = tolower(opcion);
             if (opcion == 's') {
                 resultado = 1;
             } else if (opcion == 'n') {

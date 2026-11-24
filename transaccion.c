@@ -7,9 +7,10 @@
 #include <string.h>
 
 /* Cuenta la cantidad total de registros Transaccion almacenados en el archivo binario */
-long transaccionContarRegistrosArchivo(const char nombreArchivo[]) {
+int transaccionContarRegistrosArchivo(char nombreArchivo[]) {
     FILE *archi = fopen(nombreArchivo, "rb");
-    long bytes = 0;
+    int bytes = 0;
+    int tam = sizeof(Transaccion);
 
     if (archi == NULL) {
         return 0;
@@ -23,12 +24,12 @@ long transaccionContarRegistrosArchivo(const char nombreArchivo[]) {
         return 0;
     }
 
-    return bytes / (long)sizeof(Transaccion);
+    return bytes / tam;
 }
 
 /* Imprime una fila resumen de una transaccion */
 void transaccionMostrarResumen(Transaccion t) {
-    float montoTotal = t.precioUnitarioVenta * (float)t.cantidadVendida;
+    float montoTotal = t.precioUnitarioVenta * t.cantidadVendida;
 
     printf("| %-5d | ", t.idTransaccion);
     fechaMostrar(t.fecha);
@@ -36,33 +37,32 @@ void transaccionMostrarResumen(Transaccion t) {
            t.idJuegoVendido, t.cantidadVendida, montoTotal, t.gananciaTotal);
 }
 
-/* Imprime la ficha completa de una transaccion incluyendo ganancia */
+/* Imprime el comprobante completo de una transaccion dentro de una tarjeta ASCII */
 void transaccionMostrarDetalle(Transaccion t) {
-    float montoTotal = t.precioUnitarioVenta * (float)t.cantidadVendida;
+    float montoTotal = t.precioUnitarioVenta * t.cantidadVendida;
+    char titulo[60];
 
-    printf("%s", CLR_TITULO);
-    uiLinea('-', ANCHO_UI);
-    printf("  %sDETALLE DE TRANSACCION #%d%s\n", CLR_SUBTIT, t.idTransaccion, CLR_TITULO);
-    uiLinea('-', ANCHO_UI);
-    printf("%s", CLR_RESET);
-    printf("  ID Transaccion        : %d\n", t.idTransaccion);
-    printf("  Fecha                 : ");
+    sprintf(titulo, "COMPROBANTE DE VENTA - TRANSACCION #%04d", t.idTransaccion);
+    uiAbrirCaja(titulo);
+    printf("%s|%s  Fecha        : ", CLR_TITULO, CLR_RESET);
     fechaMostrar(t.fecha);
-    printf("\n");
-    printf("  ID Videojuego vendido : %d\n", t.idJuegoVendido);
-    printf("  Cantidad vendida      : %d\n", t.cantidadVendida);
-    printf("  Precio unitario venta : $%.2f\n", t.precioUnitarioVenta);
-    printf("  Total facturado       : $%.2f\n", montoTotal);
-    printf("  Ganancia total        : %s$%.2f%s\n", CLR_OK, t.gananciaTotal, CLR_RESET);
-    printf("  DNI Cliente           : %s\n", t.dniCliente);
-    printf("  DNI Empleado          : %s\n", t.dniEmpleado);
-    printf("%s", CLR_TENUE);
-    uiLinea('-', ANCHO_UI);
-    printf("%s", CLR_RESET);
+    printf("            ID Juego : #%-21d  %s|%s\n", t.idJuegoVendido, CLR_TITULO, CLR_RESET);
+    printf("%s|%s  DNI Cliente  : %-18.18s    DNI Emp. : %-22.22s  %s|%s\n",
+           CLR_TITULO, CLR_RESET, t.dniCliente, t.dniEmpleado, CLR_TITULO, CLR_RESET);
+    uiSeparadorCaja();
+    printf("%s|%s  Cantidad vendida      : %-46d  %s|%s\n",
+           CLR_TITULO, CLR_RESET, t.cantidadVendida, CLR_TITULO, CLR_RESET);
+    printf("%s|%s  Precio unitario venta : $%-45.2f  %s|%s\n",
+           CLR_TITULO, CLR_RESET, t.precioUnitarioVenta, CLR_TITULO, CLR_RESET);
+    printf("%s|%s  Total facturado       : %s$%-45.2f%s  %s|%s\n",
+           CLR_TITULO, CLR_RESET, CLR_SUBTIT, montoTotal, CLR_RESET, CLR_TITULO, CLR_RESET);
+    printf("%s|%s  Ganancia total        : %s$%-45.2f%s  %s|%s\n",
+           CLR_TITULO, CLR_RESET, CLR_OK, t.gananciaTotal, CLR_RESET, CLR_TITULO, CLR_RESET);
+    uiCerrarCaja();
 }
 
 /* Genera el proximo idTransaccion unico a partir del maximo ID almacenado en disco */
-int transaccionGenerarNuevoId(const char nombreArchivo[]) {
+int transaccionGenerarNuevoId(char nombreArchivo[]) {
     FILE *archi = fopen(nombreArchivo, "rb");
     Transaccion aux;
     int maxId = 0;
@@ -81,8 +81,8 @@ int transaccionGenerarNuevoId(const char nombreArchivo[]) {
     return maxId + 1;
 }
 
-/* Carga todas las transacciones usando realloc por bloques y puntero doble (Req. 3h) */
-void transaccionCargarTodasRealloc(const char nombreArchivo[], Transaccion **arr, int *validos, int *dim) {
+/* Carga todas las transacciones usando realloc por bloques y puntero doble  */
+void transaccionCargarTodasRealloc(char nombreArchivo[], Transaccion **arr, int *validos, int *dim) {
     FILE *archi;
     Transaccion aux;
     Transaccion *temp;
@@ -97,7 +97,7 @@ void transaccionCargarTodasRealloc(const char nombreArchivo[], Transaccion **arr
         return;
     }
 
-    *arr = (Transaccion *)malloc((size_t)BLOQUE_TRANSACCIONES * sizeof(Transaccion));
+    *arr = (Transaccion *)malloc(BLOQUE_TRANSACCIONES * sizeof(Transaccion));
     if (*arr == NULL) {
         fclose(archi);
         uiMensajeError("No se pudo asignar memoria dinamica para transacciones.");
@@ -108,7 +108,7 @@ void transaccionCargarTodasRealloc(const char nombreArchivo[], Transaccion **arr
     while (fread(&aux, sizeof(Transaccion), 1, archi) == 1) {
         if (*validos == *dim) {
             nuevaDim = *dim + BLOQUE_TRANSACCIONES;
-            temp = (Transaccion *)realloc(*arr, (size_t)nuevaDim * sizeof(Transaccion));
+            temp = (Transaccion *)realloc(*arr, nuevaDim * sizeof(Transaccion));
             if (temp == NULL) {
                 uiMensajeError("Error al ampliar memoria con realloc para transacciones.");
                 fclose(archi);
@@ -124,8 +124,8 @@ void transaccionCargarTodasRealloc(const char nombreArchivo[], Transaccion **arr
     fclose(archi);
 }
 
-/* Muestra recursivamente el resumen de todas las transacciones (Req. 3h) */
-void transaccionMostrarResumenRec(const Transaccion arr[], int validos, int pos) {
+/* Muestra recursivamente el resumen de todas las transacciones  */
+void transaccionMostrarResumenRec(Transaccion arr[], int validos, int pos) {
     if (pos >= validos) {
         return;
     }
@@ -134,8 +134,8 @@ void transaccionMostrarResumenRec(const Transaccion arr[], int validos, int pos)
     transaccionMostrarResumenRec(arr, validos, pos + 1);
 }
 
-/* Busqueda recursiva por idTransaccion; retorna indice o -1 sin imprimir (Req. 3i) */
-int transaccionBuscarPorIdRec(const Transaccion arr[], int validos, int idBuscado, int pos) {
+/* Busqueda recursiva por idTransaccion; retorna indice o -1 sin imprimir  */
+int transaccionBuscarPorIdRec(Transaccion arr[], int validos, int idBuscado, int pos) {
     if (pos >= validos) {
         return -1;
     }
@@ -147,14 +147,14 @@ int transaccionBuscarPorIdRec(const Transaccion arr[], int validos, int idBuscad
     return transaccionBuscarPorIdRec(arr, validos, idBuscado, pos + 1);
 }
 
-/* Registra una venta validando integridad en 3 archivos y descontando stock (Req. 3j) */
-int transaccionRegistrarVenta(const char archiTrans[], const char archiJuegos[],
-                              const char archiPersonas[], Transaccion nuevaVenta) {
+/* Registra una venta validando integridad en 3 archivos y descontando stock */
+int transaccionRegistrarVenta(char archiTrans[], char archiJuegos[],
+                              char archiPersonas[], Transaccion nuevaVenta) {
     Videojuego juego;
     Persona cliente;
     Persona empleado;
     FILE *archi;
-    size_t escritos;
+    int escritos = 0;
 
     if (nuevaVenta.cantidadVendida <= 0 || nuevaVenta.precioUnitarioVenta <= 0.0f) {
         return 0;
@@ -184,7 +184,7 @@ int transaccionRegistrarVenta(const char archiTrans[], const char archiJuegos[],
 
     nuevaVenta.idTransaccion = transaccionGenerarNuevoId(archiTrans);
     nuevaVenta.gananciaTotal = (nuevaVenta.precioUnitarioVenta - juego.precioAdquisicion)
-                               * (float)nuevaVenta.cantidadVendida;
+                               * nuevaVenta.cantidadVendida;
 
     if (!videojuegoDescontarStock(archiJuegos, nuevaVenta.idJuegoVendido, nuevaVenta.cantidadVendida)) {
         return 0;
@@ -207,8 +207,8 @@ int transaccionRegistrarVenta(const char archiTrans[], const char archiJuegos[],
     return 1;
 }
 
-/* Suma recursivamente la recaudacion total (facturacion) de un mes y anio (Req. 3k) */
-float transaccionSumarRecaudacionMesRec(const Transaccion arr[], int validos, int pos, int mes, int anio) {
+/* Suma recursivamente la recaudacion total (facturacion) de un mes y anio  */
+float transaccionSumarRecaudacionMesRec(Transaccion arr[], int validos, int pos, int mes, int anio) {
     float montoActual = 0.0f;
 
     if (pos >= validos) {
@@ -216,14 +216,14 @@ float transaccionSumarRecaudacionMesRec(const Transaccion arr[], int validos, in
     }
 
     if (fechaCoincideMesAnio(arr[pos].fecha, mes, anio)) {
-        montoActual = arr[pos].precioUnitarioVenta * (float)arr[pos].cantidadVendida;
+        montoActual = arr[pos].precioUnitarioVenta * arr[pos].cantidadVendida;
     }
 
     return montoActual + transaccionSumarRecaudacionMesRec(arr, validos, pos + 1, mes, anio);
 }
 
-/* Suma recursivamente la ganancia neta de un mes y anio (Auxiliar de Req. 3k) */
-float transaccionSumarGananciaMesRec(const Transaccion arr[], int validos, int pos, int mes, int anio) {
+/* Suma recursivamente la ganancia neta de un mes y anio */
+float transaccionSumarGananciaMesRec(Transaccion arr[], int validos, int pos, int mes, int anio) {
     float gananciaActual = 0.0f;
 
     if (pos >= validos) {
@@ -237,8 +237,8 @@ float transaccionSumarGananciaMesRec(const Transaccion arr[], int validos, int p
     return gananciaActual + transaccionSumarGananciaMesRec(arr, validos, pos + 1, mes, anio);
 }
 
-/* Busca recursivamente la transaccion con mayor gananciaTotal (Precondicion: validos > 0) */
-Transaccion transaccionBuscarMayorGananciaRec(const Transaccion arr[], int validos, int pos) {
+/* Busca recursivamente la transaccion con mayor gananciaTotal  */
+Transaccion transaccionBuscarMayorGananciaRec(Transaccion arr[], int validos, int pos) {
     Transaccion mejorResto;
 
     if (pos == validos - 1) {
@@ -254,8 +254,8 @@ Transaccion transaccionBuscarMayorGananciaRec(const Transaccion arr[], int valid
 }
 
 /* Flujo interactivo para registrar una nueva venta con descuento en cascada (Req. 3j) */
-static void transaccionRegistrarVentaInteractiva(const char archiTrans[], const char archiJuegos[],
-                                                 const char archiPersonas[], const char dniEmpleadoActivo[]) {
+void transaccionRegistrarVentaInteractiva(char archiTrans[], char archiJuegos[],
+                                          char archiPersonas[], char dniEmpleadoActivo[]) {
     Transaccion nueva;
     Videojuego juego;
     Persona cliente;
@@ -263,7 +263,7 @@ static void transaccionRegistrarVentaInteractiva(const char archiTrans[], const 
     int idEstimado;
     int stockRestante;
 
-    uiTituloSeccion("REGISTRAR NUEVA VENTA");
+    uiAbrirCaja("REGISTRAR NUEVA VENTA - PIXEL PLUS");
 
     nueva.idJuegoVendido = uiLeerEnteroEnRango("  ID del videojuego a vender: ", 1, 99999);
     if (!videojuegoBuscarPorId(archiJuegos, nueva.idJuegoVendido, &juego)) {
@@ -276,12 +276,12 @@ static void transaccionRegistrarVentaInteractiva(const char archiTrans[], const 
         return;
     }
 
-    printf("  Juego seleccionado : %s (%s) | Stock disponible: %d\n",
-           juego.titulo, juego.plataforma, juego.stock);
+    printf("  %sJuego seleccionado:%s %s (%s) | Stock disponible: %d\n",
+           CLR_TITULO, CLR_RESET, juego.titulo, juego.plataforma, juego.stock);
 
     nueva.cantidadVendida = uiLeerEnteroEnRango("  Cantidad a vender         : ", 1, juego.stock);
 
-    uiLeerTexto("  DNI del cliente comprador : ", nueva.dniCliente, (int)sizeof(nueva.dniCliente));
+    uiLeerTexto("  DNI del cliente comprador : ", nueva.dniCliente, 15);
     if (!personaBuscarPorDni(archiPersonas, nueva.dniCliente, &cliente)) {
         uiMensajeError("No existe ninguna persona activa registrada con ese DNI.");
         return;
@@ -290,10 +290,10 @@ static void transaccionRegistrarVentaInteractiva(const char archiTrans[], const 
         uiMensajeError("El DNI ingresado no corresponde a un cliente.");
         return;
     }
-    printf("  Cliente validado   : %s\n", cliente.nombre);
+    printf("  %sCliente validado  :%s %s\n", CLR_OK, CLR_RESET, cliente.nombre);
 
-    strncpy(nueva.dniEmpleado, dniEmpleadoActivo, sizeof(nueva.dniEmpleado) - 1);
-    nueva.dniEmpleado[sizeof(nueva.dniEmpleado) - 1] = '\0';
+    strncpy(nueva.dniEmpleado, dniEmpleadoActivo, 14);
+    nueva.dniEmpleado[14] = '\0';
     if (!personaBuscarPorDni(archiPersonas, nueva.dniEmpleado, &empleado)) {
         uiMensajeError("El empleado autenticado no se encuentra activo en personas.bin.");
         return;
@@ -313,7 +313,7 @@ static void transaccionRegistrarVentaInteractiva(const char archiTrans[], const 
     idEstimado = transaccionGenerarNuevoId(archiTrans);
     nueva.idTransaccion = idEstimado;
     nueva.gananciaTotal = (nueva.precioUnitarioVenta - juego.precioAdquisicion)
-                          * (float)nueva.cantidadVendida;
+                          * nueva.cantidadVendida;
 
     if (transaccionRegistrarVenta(archiTrans, archiJuegos, archiPersonas, nueva)) {
         uiMensajeExito("Venta registrada y stock actualizado en cascada correctamente.");
@@ -330,7 +330,7 @@ static void transaccionRegistrarVentaInteractiva(const char archiTrans[], const 
 }
 
 /* Muestra el listado resumen de todas las transacciones usando realloc y recursividad (Req. 3h) */
-static void transaccionListarResumenInteractivo(const char archiTrans[]) {
+void transaccionListarResumenInteractivo(char archiTrans[]) {
     Transaccion *lista = NULL;
     int validos = 0;
     int dim = 0;
@@ -365,7 +365,7 @@ static void transaccionListarResumenInteractivo(const char archiTrans[]) {
 }
 
 /* Consulta el detalle de una transaccion por ID usando busqueda recursiva (Req. 3i) */
-static void transaccionVerDetalleInteractivo(const char archiTrans[]) {
+void transaccionVerDetalleInteractivo(char archiTrans[]) {
     Transaccion *lista = NULL;
     int validos = 0;
     int dim = 0;
@@ -398,7 +398,7 @@ static void transaccionVerDetalleInteractivo(const char archiTrans[]) {
 }
 
 /* Ejecuta el reporte recursivo de recaudacion y ganancia mensual (Req. 3k) */
-static void transaccionReporteRecaudacionMensual(const char archiTrans[]) {
+void transaccionReporteRecaudacionMensual(char archiTrans[]) {
     Transaccion *lista = NULL;
     int validos = 0;
     int dim = 0;
@@ -406,6 +406,7 @@ static void transaccionReporteRecaudacionMensual(const char archiTrans[]) {
     int anio;
     float totalRecaudado;
     float totalGanancia;
+    char titulo[60];
 
     uiTituloSeccion("REPORTE DE RECAUDACION MENSUAL");
     mes = uiLeerEnteroEnRango("  Mes a consultar (1-12)     : ", 1, 12);
@@ -421,16 +422,13 @@ static void transaccionReporteRecaudacionMensual(const char archiTrans[]) {
         totalGanancia = transaccionSumarGananciaMesRec(lista, validos, 0, mes, anio);
     }
 
-    printf("\n%s", CLR_TITULO);
-    uiLinea('-', ANCHO_UI);
-    printf("  %sPERIODO CONSULTADO: %02d/%04d%s\n", CLR_SUBTIT, mes, anio, CLR_TITULO);
-    uiLinea('-', ANCHO_UI);
-    printf("%s", CLR_RESET);
-    printf("  Total facturado (recaudacion) : %s$%.2f%s\n", CLR_OK, totalRecaudado, CLR_RESET);
-    printf("  Ganancia neta del periodo     : %s$%.2f%s\n", CLR_SUBTIT, totalGanancia, CLR_RESET);
-    printf("%s", CLR_TENUE);
-    uiLinea('-', ANCHO_UI);
-    printf("%s", CLR_RESET);
+    sprintf(titulo, "RECAUDACION MENSUAL - PERIODO %02d/%04d", mes, anio);
+    uiAbrirCaja(titulo);
+    printf("%s|%s  Total facturado (recaudacion) : %s$%-37.2f%s  %s|%s\n",
+           CLR_TITULO, CLR_RESET, CLR_OK, totalRecaudado, CLR_RESET, CLR_TITULO, CLR_RESET);
+    printf("%s|%s  Ganancia neta del periodo     : %s$%-37.2f%s  %s|%s\n",
+           CLR_TITULO, CLR_RESET, CLR_SUBTIT, totalGanancia, CLR_RESET, CLR_TITULO, CLR_RESET);
+    uiCerrarCaja();
 
     if (totalRecaudado == 0.0f) {
         uiMensajeAlerta("No se registraron ventas en el periodo indicado.");
@@ -443,7 +441,7 @@ static void transaccionReporteRecaudacionMensual(const char archiTrans[]) {
 }
 
 /* Ejecuta el reporte recursivo de la venta con mayor ganancia (Req. 3l) */
-static void transaccionReporteMayorGanancia(const char archiTrans[]) {
+void transaccionReporteMayorGanancia(char archiTrans[]) {
     Transaccion *lista = NULL;
     int validos = 0;
     int dim = 0;
@@ -470,8 +468,8 @@ static void transaccionReporteMayorGanancia(const char archiTrans[]) {
 }
 
 /* Submenu interactivo de Ventas y Transacciones (Reqs. 3h, 3i, 3j) */
-void transaccionMenuVentas(const char archiTrans[], const char archiJuegos[],
-                           const char archiPersonas[], const char dniEmpleadoActivo[]) {
+void transaccionMenuVentas(char archiTrans[], char archiJuegos[],
+                           char archiPersonas[], char dniEmpleadoActivo[]) {
     int opcion;
 
     do {
@@ -516,8 +514,8 @@ void transaccionMenuVentas(const char archiTrans[], const char archiJuegos[],
     } while (opcion != 0);
 }
 
-/* Submenu interactivo de Reportes Gerenciales (Reqs. 3k, 3l, 3m) */
-void transaccionMenuReportes(const char archiTrans[], const char archiJuegos[]) {
+/* Submenu interactivo de Reportes Gerenciales con control de permisos por rol */
+void transaccionMenuReportes(char archiTrans[], char archiJuegos[], int esAdmin) {
     int opcion;
 
     do {
@@ -525,8 +523,13 @@ void transaccionMenuReportes(const char archiTrans[], const char archiJuegos[]) 
         uiMostrarBannerPrincipal();
         uiTituloSeccion("REPORTES GERENCIALES - PIXEL PLUS");
 
-        printf("  %s[1]%s Reporte de Recaudacion Mensual\n", CLR_SUBTIT, CLR_RESET);
-        printf("  %s[2]%s Reporte de Venta con Mayor Ganancia\n", CLR_SUBTIT, CLR_RESET);
+        if (esAdmin) {
+            printf("  %s[1]%s Reporte de Recaudacion Mensual\n", CLR_SUBTIT, CLR_RESET);
+            printf("  %s[2]%s Reporte de Venta con Mayor Ganancia\n", CLR_SUBTIT, CLR_RESET);
+        } else {
+            printf("  %s[1] Reporte de Recaudacion Mensual (Solo Admin)%s\n", CLR_TENUE, CLR_RESET);
+            printf("  %s[2] Reporte de Venta con Mayor Ganancia (Solo Admin)%s\n", CLR_TENUE, CLR_RESET);
+        }
         printf("  %s[3]%s Reporte de Stock Critico (Orden Creciente)\n", CLR_SUBTIT, CLR_RESET);
         printf("  %s[0]%s Volver al Menu Principal\n", CLR_SUBTIT, CLR_RESET);
         printf("%s", CLR_TENUE);
@@ -537,11 +540,19 @@ void transaccionMenuReportes(const char archiTrans[], const char archiJuegos[]) 
 
         switch (opcion) {
             case 1:
-                transaccionReporteRecaudacionMensual(archiTrans);
+                if (esAdmin) {
+                    transaccionReporteRecaudacionMensual(archiTrans);
+                } else {
+                    uiMensajeError("Acceso restringido. La recaudacion mensual es exclusiva del administrador.");
+                }
                 uiPausar();
                 break;
             case 2:
-                transaccionReporteMayorGanancia(archiTrans);
+                if (esAdmin) {
+                    transaccionReporteMayorGanancia(archiTrans);
+                } else {
+                    uiMensajeError("Acceso restringido. El reporte de mayor ganancia es exclusivo del administrador.");
+                }
                 uiPausar();
                 break;
             case 3:

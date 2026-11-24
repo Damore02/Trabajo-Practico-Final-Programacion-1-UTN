@@ -26,18 +26,21 @@
 void uiLimpiarPantalla(void);
 void uiPausar(void);
 void uiLinea(char simbolo, int ancho);
+void uiAbrirCaja(char titulo[]);
+void uiSeparadorCaja(void);
+void uiCerrarCaja(void);
 void uiMostrarBannerPrincipal(void);
-void uiMostrarBarraSesion(const char usuario[], const char rol[]);
-void uiTituloSeccion(const char titulo[]);
-void uiMensajeExito(const char msg[]);
-void uiMensajeAlerta(const char msg[]);
-void uiMensajeError(const char msg[]);
+void uiMostrarBarraSesion(char usuario[], char rol[]);
+void uiTituloSeccion(char titulo[]);
+void uiMensajeExito(char msg[]);
+void uiMensajeAlerta(char msg[]);
+void uiMensajeError(char msg[]);
 
 /* Utilidades de lectura segura por teclado */
 void uiLimpiarBuffer(void);
-int uiLeerEnteroEnRango(const char prompt[], int min, int max);
-float uiLeerFloatMinimo(const char prompt[], float min);
-void uiLeerTexto(const char prompt[], char destino[], int tamMaximo);
-int uiConfirmar(const char prompt[]);
+int uiLeerEnteroEnRango(char prompt[], int min, int max);
+float uiLeerFloatMinimo(char prompt[], float min);
+void uiLeerTexto(char prompt[], char destino[], int tamMaximo);
+int uiConfirmar(char prompt[]);
 
 #endif

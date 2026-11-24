@@ -17,25 +17,31 @@ typedef struct stTransaccion {
     char dniEmpleado[15];
 } Transaccion;
 
-/* Funciones base de Transaccion (Fase 1) */
-long transaccionContarRegistrosArchivo(const char nombreArchivo[]);
+/* Funciones base de Transaccion */
+int transaccionContarRegistrosArchivo(char nombreArchivo[]);
 void transaccionMostrarResumen(Transaccion t);
 void transaccionMostrarDetalle(Transaccion t);
 
-/* Motor de ventas, carga dinamica con realloc y reportes recursivos (Fase 3) */
-int transaccionGenerarNuevoId(const char nombreArchivo[]);
-void transaccionCargarTodasRealloc(const char nombreArchivo[], Transaccion **arr, int *validos, int *dim);
-void transaccionMostrarResumenRec(const Transaccion arr[], int validos, int pos);
-int transaccionBuscarPorIdRec(const Transaccion arr[], int validos, int idBuscado, int pos);
-int transaccionRegistrarVenta(const char archiTrans[], const char archiJuegos[],
-                              const char archiPersonas[], Transaccion nuevaVenta);
-float transaccionSumarRecaudacionMesRec(const Transaccion arr[], int validos, int pos, int mes, int anio);
-float transaccionSumarGananciaMesRec(const Transaccion arr[], int validos, int pos, int mes, int anio);
-Transaccion transaccionBuscarMayorGananciaRec(const Transaccion arr[], int validos, int pos);
+/* Motor de ventas, carga dinamica con realloc y reportes recursivos */
+int transaccionGenerarNuevoId(char nombreArchivo[]);
+void transaccionCargarTodasRealloc(char nombreArchivo[], Transaccion **arr, int *validos, int *dim);
+void transaccionMostrarResumenRec(Transaccion arr[], int validos, int pos);
+int transaccionBuscarPorIdRec(Transaccion arr[], int validos, int idBuscado, int pos);
+int transaccionRegistrarVenta(char archiTrans[], char archiJuegos[],
+                              char archiPersonas[], Transaccion nuevaVenta);
+float transaccionSumarRecaudacionMesRec(Transaccion arr[], int validos, int pos, int mes, int anio);
+float transaccionSumarGananciaMesRec(Transaccion arr[], int validos, int pos, int mes, int anio);
+Transaccion transaccionBuscarMayorGananciaRec(Transaccion arr[], int validos, int pos);
 
-/* Submenus interactivos conectados desde main.c */
-void transaccionMenuVentas(const char archiTrans[], const char archiJuegos[],
-                           const char archiPersonas[], const char dniEmpleadoActivo[]);
-void transaccionMenuReportes(const char archiTrans[], const char archiJuegos[]);
+/* Interfaz interactiva de Ventas y Reportes */
+void transaccionRegistrarVentaInteractiva(char archiTrans[], char archiJuegos[],
+                                          char archiPersonas[], char dniEmpleadoActivo[]);
+void transaccionListarResumenInteractivo(char archiTrans[]);
+void transaccionVerDetalleInteractivo(char archiTrans[]);
+void transaccionReporteRecaudacionMensual(char archiTrans[]);
+void transaccionReporteMayorGanancia(char archiTrans[]);
+void transaccionMenuVentas(char archiTrans[], char archiJuegos[],
+                           char archiPersonas[], char dniEmpleadoActivo[]);
+void transaccionMenuReportes(char archiTrans[], char archiJuegos[], int esAdmin);
 
 #endif

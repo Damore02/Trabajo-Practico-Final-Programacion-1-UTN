@@ -1,14 +1,42 @@
 # depslib dependency file v1.0
-1795446200 source:c:\users\vladi\desktop\programacion en c\proyecto_final\fecha.c
+1795490614 source:c:\users\vladi\desktop\proyecto_tp_final\fecha.c
 	"fecha.h"
 	"ui.h"
 	<stdio.h>
 
-1795446198 c:\users\vladi\desktop\programacion en c\proyecto_final\fecha.h
+1795490612 c:\users\vladi\desktop\proyecto_tp_final\fecha.h
 
-1795446193 c:\users\vladi\desktop\programacion en c\proyecto_final\ui.h
+1795490608 c:\users\vladi\desktop\proyecto_tp_final\ui.h
 
-1795446311 source:c:\users\vladi\desktop\programacion en c\proyecto_final\seed.c
+1795490860 source:c:\users\vladi\desktop\proyecto_tp_final\main.c
+	<stdio.h>
+	"ui.h"
+	"seed.h"
+	"usuario.h"
+	"persona.h"
+	"videojuego.h"
+	"transaccion.h"
+
+1795490855 c:\users\vladi\desktop\proyecto_tp_final\seed.h
+
+1795490689 c:\users\vladi\desktop\proyecto_tp_final\usuario.h
+	"persona.h"
+
+1795539325 c:\users\vladi\desktop\proyecto_tp_final\persona.h
+
+1795490772 c:\users\vladi\desktop\proyecto_tp_final\videojuego.h
+
+1795539363 c:\users\vladi\desktop\proyecto_tp_final\transaccion.h
+	"fecha.h"
+
+1795491017 source:c:\users\vladi\desktop\proyecto_tp_final\persona.c
+	"persona.h"
+	"ui.h"
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+
+1795490858 source:c:\users\vladi\desktop\proyecto_tp_final\seed.c
 	"seed.h"
 	"usuario.h"
 	"persona.h"
@@ -16,27 +44,48 @@
 	"transaccion.h"
 	<stdio.h>
 
-1795446307 c:\users\vladi\desktop\programacion en c\proyecto_final\seed.h
-
-1795450272 c:\users\vladi\desktop\programacion en c\proyecto_final\usuario.h
+1795491021 source:c:\users\vladi\desktop\proyecto_tp_final\transaccion.c
+	"transaccion.h"
+	"videojuego.h"
 	"persona.h"
+	"ui.h"
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
 
-1795450268 c:\users\vladi\desktop\programacion en c\proyecto_final\persona.h
-
-1795451233 c:\users\vladi\desktop\programacion en c\proyecto_final\videojuego.h
-
-1795451292 c:\users\vladi\desktop\programacion en c\proyecto_final\transaccion.h
-	"fecha.h"
-
-1795446196 source:c:\users\vladi\desktop\programacion en c\proyecto_final\ui.c
+1795490610 source:c:\users\vladi\desktop\proyecto_tp_final\ui.c
 	"ui.h"
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
 	<ctype.h>
 
-1795455169 source:c:\users\vladi\desktop\programacion en c\proyecto_final\main.c
+1795490692 source:c:\users\vladi\desktop\proyecto_tp_final\usuario.c
+	"usuario.h"
+	"ui.h"
 	<stdio.h>
+	<string.h>
+
+1795491015 source:c:\users\vladi\desktop\proyecto_tp_final\videojuego.c
+	"videojuego.h"
+	"ui.h"
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<ctype.h>
+
+1795490614 source:c:\users\vladi\desktop\programacion en c\trabajo-practico-final-programacion-1-utn\fecha.c
+	"fecha.h"
+	"ui.h"
+	<stdio.h>
+
+1795490612 c:\users\vladi\desktop\programacion en c\trabajo-practico-final-programacion-1-utn\fecha.h
+
+1795490608 c:\users\vladi\desktop\programacion en c\trabajo-practico-final-programacion-1-utn\ui.h
+
+1795539368 source:c:\users\vladi\desktop\programacion en c\trabajo-practico-final-programacion-1-utn\main.c
+	<stdio.h>
+	<string.h>
 	"ui.h"
 	"seed.h"
 	"usuario.h"
@@ -44,14 +93,47 @@
 	"videojuego.h"
 	"transaccion.h"
 
-1795450270 source:c:\users\vladi\desktop\programacion en c\proyecto_final\persona.c
+1795490855 c:\users\vladi\desktop\programacion en c\trabajo-practico-final-programacion-1-utn\seed.h
+
+1795490689 c:\users\vladi\desktop\programacion en c\trabajo-practico-final-programacion-1-utn\usuario.h
+	"persona.h"
+
+1795539325 c:\users\vladi\desktop\programacion en c\trabajo-practico-final-programacion-1-utn\persona.h
+
+1795490772 c:\users\vladi\desktop\programacion en c\trabajo-practico-final-programacion-1-utn\videojuego.h
+
+1795539363 c:\users\vladi\desktop\programacion en c\trabajo-practico-final-programacion-1-utn\transaccion.h
+	"fecha.h"
+
+1795539330 source:c:\users\vladi\desktop\programacion en c\trabajo-practico-final-programacion-1-utn\persona.c
 	"persona.h"
 	"ui.h"
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
 
-1795451295 source:c:\users\vladi\desktop\programacion en c\proyecto_final\transaccion.c
+1795490858 source:c:\users\vladi\desktop\programacion en c\trabajo-practico-final-programacion-1-utn\seed.c
+	"seed.h"
+	"usuario.h"
+	"persona.h"
+	"videojuego.h"
+	"transaccion.h"
+	<stdio.h>
+
+1795490610 source:c:\users\vladi\desktop\programacion en c\trabajo-practico-final-programacion-1-utn\ui.c
+	"ui.h"
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<ctype.h>
+
+1795490692 source:c:\users\vladi\desktop\programacion en c\trabajo-practico-final-programacion-1-utn\usuario.c
+	"usuario.h"
+	"ui.h"
+	<stdio.h>
+	<string.h>
+
+1795540665 source:c:\users\vladi\desktop\programacion en c\trabajo-practico-final-programacion-1-utn\transaccion.c
 	"transaccion.h"
 	"videojuego.h"
 	"persona.h"
@@ -60,13 +142,7 @@
 	<stdlib.h>
 	<string.h>
 
-1795450274 source:c:\users\vladi\desktop\programacion en c\proyecto_final\usuario.c
-	"usuario.h"
-	"ui.h"
-	<stdio.h>
-	<string.h>
-
-1795451234 source:c:\users\vladi\desktop\programacion en c\proyecto_final\videojuego.c
+1795542500 source:c:\users\vladi\desktop\programacion en c\trabajo-practico-final-programacion-1-utn\videojuego.c
 	"videojuego.h"
 	"ui.h"
 	<stdio.h>

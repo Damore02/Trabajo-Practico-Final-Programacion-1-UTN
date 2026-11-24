@@ -6,9 +6,10 @@
 #include <ctype.h>
 
 /* Cuenta la cantidad total de registros Videojuego almacenados en el archivo binario */
-long videojuegoContarRegistrosArchivo(const char nombreArchivo[]) {
+int videojuegoContarRegistrosArchivo(char nombreArchivo[]) {
     FILE *archi = fopen(nombreArchivo, "rb");
-    long bytes = 0;
+    int bytes = 0;
+    int tam = sizeof(Videojuego);
 
     if (archi == NULL) {
         return 0;
@@ -22,61 +23,79 @@ long videojuegoContarRegistrosArchivo(const char nombreArchivo[]) {
         return 0;
     }
 
-    return bytes / (long)sizeof(Videojuego);
+    return bytes / tam;
 }
 
 /* Imprime una fila resumen del videojuego destacando stock critico */
 void videojuegoMostrarResumen(Videojuego v) {
-    const char *colorStock = CLR_OK;
+    char colorStock[15];
 
     if (v.stock == 0) {
-        colorStock = CLR_ERROR;
+        strcpy(colorStock, CLR_ERROR);
     } else if (v.stock <= STOCK_CRITICO) {
-        colorStock = CLR_ALERTA;
+        strcpy(colorStock, CLR_ALERTA);
+    } else {
+        strcpy(colorStock, CLR_OK);
     }
 
     printf("| %-4d | %-32.32s | %-16.16s | %s%6d%s |\n",
            v.idJuego, v.titulo, v.plataforma, colorStock, v.stock, CLR_RESET);
 }
 
-/* Imprime la ficha detallada de un videojuego controlando la visibilidad del costo */
+/* Imprime la ficha detallada de un videojuego en tarjeta ASCII con indicadores */
 void videojuegoMostrarDetalle(Videojuego v, int mostrarPrecioCosto) {
-    const char *estado = (v.activo == JUEGO_ACTIVO) ? "Activo" : "Inactivo";
-    const char *colorEstado = (v.activo == JUEGO_ACTIVO) ? CLR_OK : CLR_ERROR;
-    const char *colorStock = (v.stock <= STOCK_CRITICO) ? CLR_ALERTA : CLR_OK;
+    char estado[15];
+    char colorEstado[15];
+    char badgeStock[20];
+    char colorStock[15];
+
+    if (v.activo == JUEGO_ACTIVO) {
+        strcpy(estado, "[ACTIVO]");
+        strcpy(colorEstado, CLR_OK);
+    } else {
+        strcpy(estado, "[INACTIVO]");
+        strcpy(colorEstado, CLR_ERROR);
+    }
 
     if (v.stock == 0) {
-        colorStock = CLR_ERROR;
+        strcpy(badgeStock, "[AGOTADO]");
+        strcpy(colorStock, CLR_ERROR);
+    } else if (v.stock <= STOCK_CRITICO) {
+        strcpy(badgeStock, "[STOCK CRITICO]");
+        strcpy(colorStock, CLR_ALERTA);
+    } else {
+        strcpy(badgeStock, "[DISPONIBLE]");
+        strcpy(colorStock, CLR_OK);
     }
 
-    printf("%s", CLR_TITULO);
-    uiLinea('-', ANCHO_UI);
-    printf("  %sDETALLE DE VIDEOJUEGO%s\n", CLR_SUBTIT, CLR_TITULO);
-    uiLinea('-', ANCHO_UI);
-    printf("%s", CLR_RESET);
-    printf("  ID Juego           : %d\n", v.idJuego);
-    printf("  Titulo             : %s\n", v.titulo);
-    printf("  Plataforma         : %s\n", v.plataforma);
-    printf("  Genero             : %s\n", v.genero);
-    printf("  Stock disponible   : %s%d unidades%s\n", colorStock, v.stock, CLR_RESET);
+    uiAbrirCaja("FICHA DE PRODUCTO - INVENTARIO PIXEL PLUS");
+    printf("%s|%s  ID #%04d  |  %s%-57.57s%s  %s|%s\n",
+           CLR_TITULO, CLR_RESET, v.idJuego, CLR_SUBTIT, v.titulo, CLR_RESET, CLR_TITULO, CLR_RESET);
+    uiSeparadorCaja();
+    printf("%s|%s  Plataforma : %-20.20s  Genero : %-26.26s  %s|%s\n",
+           CLR_TITULO, CLR_RESET, v.plataforma, v.genero, CLR_TITULO, CLR_RESET);
+    printf("%s|%s  Stock      : %s%-4d unid. %-15.15s%s  Estado : %s%-20.20s%s  %s|%s\n",
+           CLR_TITULO, CLR_RESET, colorStock, v.stock, badgeStock, CLR_RESET,
+           colorEstado, estado, CLR_RESET, CLR_TITULO, CLR_RESET);
+    uiSeparadorCaja();
+
     if (mostrarPrecioCosto) {
-        printf("  Precio adquisicion : $%.2f\n", v.precioAdquisicion);
+        printf("%s|%s  Precio de adquisicion (Admin) : %s$%-37.2f%s  %s|%s\n",
+               CLR_TITULO, CLR_RESET, CLR_SUBTIT, v.precioAdquisicion, CLR_RESET, CLR_TITULO, CLR_RESET);
     } else {
-        printf("  Precio adquisicion : %s(Restringido a rol administrativo)%s\n",
-               CLR_TENUE, CLR_RESET);
+        printf("%s|%s  Precio de adquisicion : %s%-46.46s%s  %s|%s\n",
+               CLR_TITULO, CLR_RESET, CLR_TENUE, "(Restringido a rol administrativo)", CLR_RESET,
+               CLR_TITULO, CLR_RESET);
     }
-    printf("  Estado             : %s%s%s\n", colorEstado, estado, CLR_RESET);
-    printf("%s", CLR_TENUE);
-    uiLinea('-', ANCHO_UI);
-    printf("%s", CLR_RESET);
+    uiCerrarCaja();
 }
 
 /* Compara dos cadenas sin distinguir mayusculas de minusculas */
-static int videojuegoTextoIgualSinCase(const char a[], const char b[]) {
+int videojuegoTextoIgualSinCase(char a[], char b[]) {
     int i = 0;
 
     while (a[i] != '\0' && b[i] != '\0') {
-        if (tolower((unsigned char)a[i]) != tolower((unsigned char)b[i])) {
+        if (tolower(a[i]) != tolower(b[i])) {
             return 0;
         }
         i++;
@@ -86,7 +105,7 @@ static int videojuegoTextoIgualSinCase(const char a[], const char b[]) {
 }
 
 /* Verifica si un idJuego ya existe en el archivo (activo o inactivo) */
-static int videojuegoExisteIdEnArchivo(const char nombreArchivo[], int idBuscado) {
+int videojuegoExisteIdEnArchivo(char nombreArchivo[], int idBuscado) {
     FILE *archi = fopen(nombreArchivo, "rb");
     Videojuego aux;
 
@@ -106,7 +125,7 @@ static int videojuegoExisteIdEnArchivo(const char nombreArchivo[], int idBuscado
 }
 
 /* Cuenta la cantidad de videojuegos activos en el archivo */
-static int videojuegoContarActivos(const char nombreArchivo[]) {
+int videojuegoContarActivos(char nombreArchivo[]) {
     FILE *archi = fopen(nombreArchivo, "rb");
     Videojuego aux;
     int cant = 0;
@@ -126,7 +145,7 @@ static int videojuegoContarActivos(const char nombreArchivo[]) {
 }
 
 /* Genera el proximo ID unico analizando el maximo ID registrado en disco */
-int videojuegoGenerarNuevoId(const char nombreArchivo[]) {
+int videojuegoGenerarNuevoId(char nombreArchivo[]) {
     FILE *archi = fopen(nombreArchivo, "rb");
     Videojuego aux;
     int maxId = 0;
@@ -146,7 +165,7 @@ int videojuegoGenerarNuevoId(const char nombreArchivo[]) {
 }
 
 /* Busca un videojuego activo por idJuego; si encontrado != NULL copia el registro */
-int videojuegoBuscarPorId(const char nombreArchivo[], int idBuscado, Videojuego *encontrado) {
+int videojuegoBuscarPorId(char nombreArchivo[], int idBuscado, Videojuego *encontrado) {
     FILE *archi = fopen(nombreArchivo, "rb");
     Videojuego aux;
 
@@ -169,9 +188,9 @@ int videojuegoBuscarPorId(const char nombreArchivo[], int idBuscado, Videojuego 
 }
 
 /* Da de alta un videojuego validando unicidad de idJuego */
-int videojuegoAgregar(const char nombreArchivo[], Videojuego nuevo) {
+int videojuegoAgregar(char nombreArchivo[], Videojuego nuevo) {
     FILE *archi;
-    size_t escritos;
+    int escritos = 0;
 
     if (nuevo.idJuego <= 0 || videojuegoExisteIdEnArchivo(nombreArchivo, nuevo.idJuego)) {
         return 0;
@@ -190,9 +209,10 @@ int videojuegoAgregar(const char nombreArchivo[], Videojuego nuevo) {
 }
 
 /* Modifica los datos y/o stock de un videojuego activo in-place con r+b y fseek */
-int videojuegoModificar(const char nombreArchivo[], int idBuscado, Videojuego actualizado) {
+int videojuegoModificar(char nombreArchivo[], int idBuscado, Videojuego actualizado) {
     FILE *archi = fopen(nombreArchivo, "r+b");
     Videojuego aux;
+    int tam = sizeof(Videojuego);
 
     if (archi == NULL) {
         return 0;
@@ -202,7 +222,7 @@ int videojuegoModificar(const char nombreArchivo[], int idBuscado, Videojuego ac
         if (aux.activo == JUEGO_ACTIVO && aux.idJuego == idBuscado) {
             actualizado.idJuego = aux.idJuego;
             actualizado.activo = JUEGO_ACTIVO;
-            fseek(archi, -(long)sizeof(Videojuego), SEEK_CUR);
+            fseek(archi, -tam, SEEK_CUR);
             fwrite(&actualizado, sizeof(Videojuego), 1, archi);
             fclose(archi);
             return 1;
@@ -214,9 +234,10 @@ int videojuegoModificar(const char nombreArchivo[], int idBuscado, Videojuego ac
 }
 
 /* Realiza la baja logica (activo = 0) de un videojuego activo en modo r+b */
-int videojuegoBajaLogica(const char nombreArchivo[], int idBuscado) {
+int videojuegoBajaLogica(char nombreArchivo[], int idBuscado) {
     FILE *archi = fopen(nombreArchivo, "r+b");
     Videojuego aux;
+    int tam = sizeof(Videojuego);
 
     if (archi == NULL) {
         return 0;
@@ -225,7 +246,7 @@ int videojuegoBajaLogica(const char nombreArchivo[], int idBuscado) {
     while (fread(&aux, sizeof(Videojuego), 1, archi) == 1) {
         if (aux.activo == JUEGO_ACTIVO && aux.idJuego == idBuscado) {
             aux.activo = JUEGO_INACTIVO;
-            fseek(archi, -(long)sizeof(Videojuego), SEEK_CUR);
+            fseek(archi, -tam, SEEK_CUR);
             fwrite(&aux, sizeof(Videojuego), 1, archi);
             fclose(archi);
             return 1;
@@ -236,10 +257,11 @@ int videojuegoBajaLogica(const char nombreArchivo[], int idBuscado) {
     return 0;
 }
 
-/* Descuenta stock de un juego activo en r+b (puente para registro de ventas Fase 3) */
-int videojuegoDescontarStock(const char nombreArchivo[], int idJuego, int cantidadVendida) {
+/* Descuenta stock de un juego activo en r+b (puente para registro de ventas) */
+int videojuegoDescontarStock(char nombreArchivo[], int idJuego, int cantidadVendida) {
     FILE *archi;
     Videojuego aux;
+    int tam = sizeof(Videojuego);
 
     if (cantidadVendida <= 0) {
         return 0;
@@ -257,7 +279,7 @@ int videojuegoDescontarStock(const char nombreArchivo[], int idJuego, int cantid
                 return 0;
             }
             aux.stock -= cantidadVendida;
-            fseek(archi, -(long)sizeof(Videojuego), SEEK_CUR);
+            fseek(archi, -tam, SEEK_CUR);
             fwrite(&aux, sizeof(Videojuego), 1, archi);
             fclose(archi);
             return 1;
@@ -269,7 +291,7 @@ int videojuegoDescontarStock(const char nombreArchivo[], int idJuego, int cantid
 }
 
 /* Carga todos los videojuegos activos en un arreglo dinamico de tamanio exacto */
-Videojuego* videojuegoCargarActivos(const char nombreArchivo[], int *validos) {
+Videojuego* videojuegoCargarActivos(char nombreArchivo[], int *validos) {
     FILE *archi;
     Videojuego *arr = NULL;
     Videojuego aux;
@@ -281,7 +303,7 @@ Videojuego* videojuegoCargarActivos(const char nombreArchivo[], int *validos) {
         return NULL;
     }
 
-    arr = (Videojuego *)malloc((size_t)cantActivos * sizeof(Videojuego));
+    arr = (Videojuego *)malloc(cantActivos * sizeof(Videojuego));
     if (arr == NULL) {
         uiMensajeError("No se pudo asignar memoria dinamica para videojuegos.");
         return NULL;
@@ -306,7 +328,7 @@ Videojuego* videojuegoCargarActivos(const char nombreArchivo[], int *validos) {
 }
 
 /* Muestra recursivamente el arreglo de videojuegos activos (Req. 3e) */
-void videojuegoMostrarArregloRec(const Videojuego arr[], int validos, int pos) {
+void videojuegoMostrarArregloRec(Videojuego arr[], int validos, int pos) {
     if (pos >= validos) {
         return;
     }
@@ -316,7 +338,7 @@ void videojuegoMostrarArregloRec(const Videojuego arr[], int validos, int pos) {
 }
 
 /* Cuenta cuantos videojuegos activos pertenecen a una plataforma especifica (Req. 3f) */
-int videojuegoContarPorPlataforma(const char nombreArchivo[], const char plataforma[]) {
+int videojuegoContarPorPlataforma(char nombreArchivo[], char plataforma[]) {
     FILE *archi = fopen(nombreArchivo, "rb");
     Videojuego aux;
     int cant = 0;
@@ -337,7 +359,7 @@ int videojuegoContarPorPlataforma(const char nombreArchivo[], const char platafo
 }
 
 /* Carga en arreglo dinamico de tamanio justo los juegos activos de una plataforma (Req. 3f) */
-Videojuego* videojuegoFiltrarPorPlataforma(const char nombreArchivo[], const char plataforma[], int *validos) {
+Videojuego* videojuegoFiltrarPorPlataforma(char nombreArchivo[], char plataforma[], int *validos) {
     FILE *archi;
     Videojuego *arr = NULL;
     Videojuego aux;
@@ -349,7 +371,7 @@ Videojuego* videojuegoFiltrarPorPlataforma(const char nombreArchivo[], const cha
         return NULL;
     }
 
-    arr = (Videojuego *)malloc((size_t)cant * sizeof(Videojuego));
+    arr = (Videojuego *)malloc(cant * sizeof(Videojuego));
     if (arr == NULL) {
         uiMensajeError("No se pudo asignar memoria dinamica para el filtro por plataforma.");
         return NULL;
@@ -374,13 +396,37 @@ Videojuego* videojuegoFiltrarPorPlataforma(const char nombreArchivo[], const cha
     return arr;
 }
 
-/* Flujo interactivo para alta de videojuego (Req. 3a) */
-static void videojuegoAltaInteractiva(const char nombreArchivo[]) {
+/* Selector rapido de plataforma con opcion personalizada */
+void videojuegoSeleccionarPlataforma(char destinoPlataforma[]) {
+    int op;
+
+    printf("  Seleccione la plataforma:\n");
+    printf("    %s[1]%s PS5            %s[3]%s PC\n", CLR_SUBTIT, CLR_RESET, CLR_SUBTIT, CLR_RESET);
+    printf("    %s[2]%s Xbox Series X  %s[4]%s Switch\n", CLR_SUBTIT, CLR_RESET, CLR_SUBTIT, CLR_RESET);
+    printf("    %s[5]%s Otra plataforma (escribir manualmente)\n", CLR_SUBTIT, CLR_RESET);
+    op = uiLeerEnteroEnRango("  Plataforma > ", 1, 5);
+
+    if (op == 1) {
+        strcpy(destinoPlataforma, "PS5");
+    } else if (op == 2) {
+        strcpy(destinoPlataforma, "Xbox Series X");
+    } else if (op == 3) {
+        strcpy(destinoPlataforma, "PC");
+    } else if (op == 4) {
+        strcpy(destinoPlataforma, "Switch");
+    } else {
+        uiLeerTexto("  Nombre de plataforma: ", destinoPlataforma, 20);
+    }
+}
+
+/* Flujo interactivo guiado con vista previa para alta de videojuego */
+void videojuegoAltaInteractiva(char nombreArchivo[]) {
     Videojuego nuevo;
     int idSugerido = videojuegoGenerarNuevoId(nombreArchivo);
 
-    uiTituloSeccion("ALTA DE VIDEOJUEGO");
-    printf("  ID sugerido automaticamente: %d\n", idSugerido);
+    uiAbrirCaja("ALTA DE NUEVO VIDEOJUEGO - FORMULARIO GUIADO");
+    printf("  %sPaso 1/6 - Identificador Unico%s\n", CLR_TITULO, CLR_RESET);
+    printf("  ID sugerido automaticamente: %s#%04d%s\n", CLR_SUBTIT, idSugerido, CLR_RESET);
 
     if (uiConfirmar("Desea utilizar el ID automatico sugerido?")) {
         nuevo.idJuego = idSugerido;
@@ -392,24 +438,43 @@ static void videojuegoAltaInteractiva(const char nombreArchivo[]) {
         }
     }
 
-    uiLeerTexto("  Titulo             : ", nuevo.titulo, (int)sizeof(nuevo.titulo));
-    uiLeerTexto("  Plataforma (ej PS5): ", nuevo.plataforma, (int)sizeof(nuevo.plataforma));
-    uiLeerTexto("  Genero             : ", nuevo.genero, (int)sizeof(nuevo.genero));
-    nuevo.stock = uiLeerEnteroEnRango("  Stock inicial      : ", 0, 100000);
+    printf("\n  %sPaso 2/6 - Titulo del Producto%s\n", CLR_TITULO, CLR_RESET);
+    uiLeerTexto("  Titulo             : ", nuevo.titulo, 50);
+
+    printf("\n  %sPaso 3/6 - Plataforma%s\n", CLR_TITULO, CLR_RESET);
+    videojuegoSeleccionarPlataforma(nuevo.plataforma);
+
+    printf("\n  %sPaso 4/6 - Genero%s\n", CLR_TITULO, CLR_RESET);
+    uiLeerTexto("  Genero (ej Accion) : ", nuevo.genero, 20);
+
+    printf("\n  %sPaso 5/6 - Stock Inicial%s\n", CLR_TITULO, CLR_RESET);
+    nuevo.stock = uiLeerEnteroEnRango("  Unidades en stock  : ", 0, 100000);
+
+    printf("\n  %sPaso 6/6 - Costo de Adquisicion%s\n", CLR_TITULO, CLR_RESET);
     nuevo.precioAdquisicion = uiLeerFloatMinimo("  Precio adquisicion : $", 0.0f);
     nuevo.activo = JUEGO_ACTIVO;
 
-    if (videojuegoAgregar(nombreArchivo, nuevo)) {
-        uiMensajeExito("Videojuego agregado correctamente al inventario.");
+    printf("\n  %sVISTA PREVIA DEL PRODUCTO ANTES DE GUARDAR:%s", CLR_ALERTA, CLR_RESET);
+    videojuegoMostrarDetalle(nuevo, 1);
+
+    if (uiConfirmar("Confirma el alta de este videojuego en inventario?")) {
+        if (videojuegoAgregar(nombreArchivo, nuevo)) {
+            uiMensajeExito("Videojuego agregado correctamente al inventario.");
+        } else {
+            uiMensajeError("No se pudo agregar el videojuego.");
+        }
     } else {
-        uiMensajeError("No se pudo agregar el videojuego.");
+        uiMensajeAlerta("Alta cancelada por el usuario.");
     }
 }
 
-/* Flujo interactivo para modificar un videojuego y actualizar stock (Req. 3a) */
-static void videojuegoModificarInteractiva(const char nombreArchivo[], int esAdmin) {
+/* Flujo interactivo con menu por campo y vista en vivo para modificar un juego  */
+void videojuegoModificarInteractiva(char nombreArchivo[], int esAdmin) {
     int idBuscado;
     Videojuego actual;
+    int opcion;
+    int maxOpcion;
+    int huboCambios = 0;
 
     uiTituloSeccion("MODIFICAR VIDEOJUEGO / ACTUALIZAR STOCK");
     idBuscado = uiLeerEnteroEnRango("  Ingrese ID del videojuego a modificar: ", 1, 99999);
@@ -419,33 +484,69 @@ static void videojuegoModificarInteractiva(const char nombreArchivo[], int esAdm
         return;
     }
 
-    videojuegoMostrarDetalle(actual, esAdmin);
+    maxOpcion = esAdmin ? 6 : 5;
 
-    if (uiConfirmar("Desea modificar el titulo?")) {
-        uiLeerTexto("  Nuevo titulo     : ", actual.titulo, (int)sizeof(actual.titulo));
-    }
-    if (uiConfirmar("Desea modificar la plataforma?")) {
-        uiLeerTexto("  Nueva plataforma : ", actual.plataforma, (int)sizeof(actual.plataforma));
-    }
-    if (uiConfirmar("Desea modificar el genero?")) {
-        uiLeerTexto("  Nuevo genero     : ", actual.genero, (int)sizeof(actual.genero));
-    }
-    if (uiConfirmar("Desea actualizar el stock?")) {
-        actual.stock = uiLeerEnteroEnRango("  Nuevo stock      : ", 0, 100000);
-    }
-    if (esAdmin && uiConfirmar("Desea modificar el precio de adquisicion?")) {
-        actual.precioAdquisicion = uiLeerFloatMinimo("  Nuevo costo      : $", 0.0f);
-    }
+    do {
+        uiLimpiarPantalla();
+        uiMostrarBannerPrincipal();
+        printf("\n  %sEDITOR INTERACTIVO DE PRODUCTO (ID #%04d)%s", CLR_SUBTIT, actual.idJuego, CLR_RESET);
+        videojuegoMostrarDetalle(actual, esAdmin);
 
-    if (videojuegoModificar(nombreArchivo, idBuscado, actual)) {
-        uiMensajeExito("Videojuego actualizado correctamente en videojuegos.bin.");
-    } else {
-        uiMensajeError("No se pudo actualizar el videojuego.");
-    }
+        printf("\n%s", CLR_TITULO);
+        uiLinea('-', ANCHO_UI);
+        printf("%s", CLR_RESET);
+        printf("  %s[1]%s Editar Titulo          %s[4]%s Actualizar Stock\n",
+               CLR_SUBTIT, CLR_RESET, CLR_SUBTIT, CLR_RESET);
+        printf("  %s[2]%s Cambiar Plataforma     ", CLR_SUBTIT, CLR_RESET);
+        if (esAdmin) {
+            printf("%s[5]%s Editar Precio Adquisicion\n", CLR_SUBTIT, CLR_RESET);
+            printf("  %s[3]%s Editar Genero          %s[6]%s %sGuardar Cambios%s\n",
+                   CLR_SUBTIT, CLR_RESET, CLR_SUBTIT, CLR_RESET, CLR_OK, CLR_RESET);
+        } else {
+            printf("%s[5]%s %sGuardar Cambios%s\n", CLR_SUBTIT, CLR_RESET, CLR_OK, CLR_RESET);
+            printf("  %s[3]%s Editar Genero\n", CLR_SUBTIT, CLR_RESET);
+        }
+        printf("  %s[0]%s Cancelar sin Guardar\n", CLR_SUBTIT, CLR_RESET);
+        printf("%s", CLR_TENUE);
+        uiLinea('-', ANCHO_UI);
+        printf("%s", CLR_RESET);
+
+        opcion = uiLeerEnteroEnRango("  Que campo desea modificar? > ", 0, maxOpcion);
+
+        if (opcion == 1) {
+            uiLeerTexto("  Nuevo titulo : ", actual.titulo, 50);
+            huboCambios = 1;
+        } else if (opcion == 2) {
+            videojuegoSeleccionarPlataforma(actual.plataforma);
+            huboCambios = 1;
+        } else if (opcion == 3) {
+            uiLeerTexto("  Nuevo genero : ", actual.genero, 20);
+            huboCambios = 1;
+        } else if (opcion == 4) {
+            actual.stock = uiLeerEnteroEnRango("  Nuevo stock  : ", 0, 100000);
+            huboCambios = 1;
+        } else if (esAdmin && opcion == 5) {
+            actual.precioAdquisicion = uiLeerFloatMinimo("  Nuevo costo  : $", 0.0f);
+            huboCambios = 1;
+        } else if (opcion == maxOpcion) {
+            if (huboCambios) {
+                if (videojuegoModificar(nombreArchivo, idBuscado, actual)) {
+                    uiMensajeExito("Videojuego actualizado correctamente en videojuegos.bin.");
+                } else {
+                    uiMensajeError("No se pudo actualizar el videojuego.");
+                }
+            } else {
+                uiMensajeAlerta("No se realizaron cambios sobre el videojuego.");
+            }
+            opcion = 0;
+        } else if (opcion == 0 && huboCambios) {
+            uiMensajeAlerta("Cambios descartados. No se modifico videojuegos.bin.");
+        }
+    } while (opcion != 0);
 }
 
 /* Flujo interactivo para baja logica de videojuego */
-static void videojuegoBajaInteractiva(const char nombreArchivo[], int esAdmin) {
+void videojuegoBajaInteractiva(char nombreArchivo[], int esAdmin) {
     int idBuscado;
     Videojuego actual;
 
@@ -469,8 +570,8 @@ static void videojuegoBajaInteractiva(const char nombreArchivo[], int esAdmin) {
     }
 }
 
-/* Muestra el listado general de videojuegos usando recursividad (Req. 3e) */
-static void videojuegoListarInteractivo(const char nombreArchivo[]) {
+/* Muestra el listado general de videojuegos usando recursividad*/
+void videojuegoListarInteractivo(char nombreArchivo[]) {
     Videojuego *lista = NULL;
     int validos = 0;
 
@@ -499,16 +600,15 @@ static void videojuegoListarInteractivo(const char nombreArchivo[]) {
     lista = NULL;
 }
 
-/* Filtra videojuegos por plataforma usando malloc de tamanio justo (Req. 3f) */
-static void videojuegoFiltrarPlataformaInteractivo(const char nombreArchivo[], int esAdmin) {
+/* Filtra videojuegos por plataforma usando malloc de tamanio justo */
+void videojuegoFiltrarPlataformaInteractivo(char nombreArchivo[], int esAdmin) {
     char plataforma[20];
     Videojuego *filtrados = NULL;
     int validos = 0;
     int i;
 
     uiTituloSeccion("BUSCAR VIDEOJUEGOS POR PLATAFORMA");
-    uiLeerTexto("  Plataforma (PS5 / PC / Switch / Xbox Series X): ",
-                plataforma, (int)sizeof(plataforma));
+    uiLeerTexto("  Plataforma (PS5 / PC / Switch / Xbox Series X): ", plataforma, 20);
 
     filtrados = videojuegoFiltrarPorPlataforma(nombreArchivo, plataforma, &validos);
 
@@ -553,8 +653,8 @@ static void videojuegoFiltrarPlataformaInteractivo(const char nombreArchivo[], i
     filtrados = NULL;
 }
 
-/* Muestra la ficha detallada de un videojuego aplicando control de rol (Req. 3g) */
-static void videojuegoVerDetalleInteractivo(const char nombreArchivo[], int esAdmin) {
+/* Muestra la ficha detallada de un videojuego aplicando control de rol  */
+void videojuegoVerDetalleInteractivo(char nombreArchivo[], int esAdmin) {
     int idBuscado;
     Videojuego encontrado;
 
@@ -568,8 +668,8 @@ static void videojuegoVerDetalleInteractivo(const char nombreArchivo[], int esAd
     }
 }
 
-/* Submenu interactivo de gestion de inventario de videojuegos */
-void videojuegoMenuGestion(const char nombreArchivo[], const char usuarioActivo[], const char rolActivo[], int esAdmin) {
+/* Submenu interactivo de gestion de inventario con control de permisos por rol */
+void videojuegoMenuGestion(char nombreArchivo[], char usuarioActivo[], char rolActivo[], int esAdmin) {
     int opcion;
 
     do {
@@ -578,9 +678,15 @@ void videojuegoMenuGestion(const char nombreArchivo[], const char usuarioActivo[
         uiMostrarBarraSesion(usuarioActivo, rolActivo);
         uiTituloSeccion("GESTION DE INVENTARIO (VIDEOJUEGOS)");
 
-        printf("  %s[1]%s Agregar Videojuego\n", CLR_SUBTIT, CLR_RESET);
-        printf("  %s[2]%s Modificar Videojuego / Actualizar Stock\n", CLR_SUBTIT, CLR_RESET);
-        printf("  %s[3]%s Baja Logica de Videojuego\n", CLR_SUBTIT, CLR_RESET);
+        if (esAdmin) {
+            printf("  %s[1]%s Agregar Videojuego\n", CLR_SUBTIT, CLR_RESET);
+            printf("  %s[2]%s Modificar Videojuego / Actualizar Stock\n", CLR_SUBTIT, CLR_RESET);
+            printf("  %s[3]%s Baja Logica de Videojuego\n", CLR_SUBTIT, CLR_RESET);
+        } else {
+            printf("  %s[1] Agregar Videojuego (Solo Admin)%s\n", CLR_TENUE, CLR_RESET);
+            printf("  %s[2] Modificar Videojuego / Actualizar Stock (Solo Admin)%s\n", CLR_TENUE, CLR_RESET);
+            printf("  %s[3] Baja Logica de Videojuego (Solo Admin)%s\n", CLR_TENUE, CLR_RESET);
+        }
         printf("  %s[4]%s Ver Listado General de Videojuegos\n", CLR_SUBTIT, CLR_RESET);
         printf("  %s[5]%s Ver Videojuegos por Plataforma\n", CLR_SUBTIT, CLR_RESET);
         printf("  %s[6]%s Ver Info Detallada por ID\n", CLR_SUBTIT, CLR_RESET);
@@ -593,15 +699,27 @@ void videojuegoMenuGestion(const char nombreArchivo[], const char usuarioActivo[
 
         switch (opcion) {
             case 1:
-                videojuegoAltaInteractiva(nombreArchivo);
+                if (esAdmin) {
+                    videojuegoAltaInteractiva(nombreArchivo);
+                } else {
+                    uiMensajeError("Acceso restringido. Solo administradores pueden agregar videojuegos.");
+                }
                 uiPausar();
                 break;
             case 2:
-                videojuegoModificarInteractiva(nombreArchivo, esAdmin);
+                if (esAdmin) {
+                    videojuegoModificarInteractiva(nombreArchivo, esAdmin);
+                } else {
+                    uiMensajeError("Acceso restringido. Solo administradores pueden modificar el inventario.");
+                }
                 uiPausar();
                 break;
             case 3:
-                videojuegoBajaInteractiva(nombreArchivo, esAdmin);
+                if (esAdmin) {
+                    videojuegoBajaInteractiva(nombreArchivo, esAdmin);
+                } else {
+                    uiMensajeError("Acceso restringido. Solo administradores pueden dar de baja videojuegos.");
+                }
                 uiPausar();
                 break;
             case 4:
@@ -626,8 +744,8 @@ void videojuegoMenuGestion(const char nombreArchivo[], const char usuarioActivo[
     } while (opcion != 0);
 }
 
-/* Cuenta cuantos videojuegos activos poseen stock <= STOCK_CRITICO (Req. 3m) */
-int videojuegoContarStockCritico(const char nombreArchivo[]) {
+/* Cuenta cuantos videojuegos activos poseen stock <= STOCK_CRITICO  */
+int videojuegoContarStockCritico(char nombreArchivo[]) {
     FILE *archi = fopen(nombreArchivo, "rb");
     Videojuego aux;
     int cant = 0;
@@ -646,8 +764,8 @@ int videojuegoContarStockCritico(const char nombreArchivo[]) {
     return cant;
 }
 
-/* Carga en arreglo dinamico de tamanio justo los juegos activos en stock critico (Req. 3m) */
-Videojuego* videojuegoCargarStockCritico(const char nombreArchivo[], int *validos) {
+/* Carga en arreglo dinamico de tamanio justo los juegos activos en stock critico */
+Videojuego* videojuegoCargarStockCritico(char nombreArchivo[], int *validos) {
     FILE *archi;
     Videojuego *arr = NULL;
     Videojuego aux;
@@ -659,7 +777,7 @@ Videojuego* videojuegoCargarStockCritico(const char nombreArchivo[], int *valido
         return NULL;
     }
 
-    arr = (Videojuego *)malloc((size_t)cant * sizeof(Videojuego));
+    arr = (Videojuego *)malloc(cant * sizeof(Videojuego));
     if (arr == NULL) {
         uiMensajeError("No se pudo asignar memoria dinamica para el reporte de stock critico.");
         return NULL;
@@ -706,13 +824,13 @@ void videojuegoOrdenarPorStockCreciente(Videojuego arr[], int validos) {
     }
 }
 
-/* Coordina la carga exacta, ordenamiento y muestra del reporte de stock critico (Req. 3m) */
-void videojuegoReporteStockCritico(const char nombreArchivo[]) {
+/* Coordina la carga exacta, ordenamiento y muestra del reporte de stock critico  */
+void videojuegoReporteStockCritico(char nombreArchivo[]) {
     Videojuego *criticos = NULL;
     int validos = 0;
     int i;
-    const char *colorStock;
-    const char *etiqueta;
+    char colorStock[15];
+    char etiqueta[15];
 
     uiTituloSeccion("REPORTE DE STOCK CRITICO (STOCK <= 5, ORDEN CRECIENTE)");
     criticos = videojuegoCargarStockCritico(nombreArchivo, &validos);
@@ -736,11 +854,11 @@ void videojuegoReporteStockCritico(const char nombreArchivo[]) {
 
     for (i = 0; i < validos; i++) {
         if (criticos[i].stock == 0) {
-            colorStock = CLR_ERROR;
-            etiqueta = "AGOTADO";
+            strcpy(colorStock, CLR_ERROR);
+            strcpy(etiqueta, "AGOTADO");
         } else {
-            colorStock = CLR_ALERTA;
-            etiqueta = "CRITICO";
+            strcpy(colorStock, CLR_ALERTA);
+            strcpy(etiqueta, "CRITICO");
         }
 
         printf("| %-4d | %-26.26s | %-14.14s | %s%6d%s | %s%-9.9s%s |\n",

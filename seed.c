@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 /* Verifica si un archivo binario ya existe en disco sin modificarlo */
-static int seedArchivoExiste(const char nombreArchivo[]) {
+int seedArchivoExiste(char nombreArchivo[]) {
     FILE *archi = fopen(nombreArchivo, "rb");
 
     if (archi != NULL) {
@@ -18,7 +18,7 @@ static int seedArchivoExiste(const char nombreArchivo[]) {
 }
 
 /* Crea personas.bin con 7 registros para probar realloc y bajas logicas */
-static void seedCrearPersonas(void) {
+void seedCrearPersonas(void) {
     FILE *archi;
     Persona lote[7] = {
         {"30111222", "Martina Gomez",   "2235111222", "Av. Colon 1420",     ROL_ADMIN,    PERSONA_ACTIVA},
@@ -42,7 +42,7 @@ static void seedCrearPersonas(void) {
 }
 
 /* Crea usuarios.bin con 1 administrador y 1 empleado */
-static void seedCrearUsuarios(void) {
+void seedCrearUsuarios(void) {
     FILE *archi;
     Usuario lote[2] = {
         {
@@ -71,17 +71,17 @@ static void seedCrearUsuarios(void) {
 }
 
 /* Crea videojuegos.bin con 8 registros cubriendo plataformas, stock critico, stock 0 e inactivo */
-static void seedCrearVideojuegos(void) {
+void seedCrearVideojuegos(void) {
     FILE *archi;
     Videojuego lote[8] = {
-        {1, "God of War Ragnarok",       "PS5",           "Accion",       12, 42000.00f, JUEGO_ACTIVO},
-        {2, "Elden Ring",                "PC",            "RPG",           4, 35000.00f, JUEGO_ACTIVO},
-        {3, "Zelda Tears of the Kingdom","Switch",        "Aventura",      1, 48000.00f, JUEGO_ACTIVO},
-        {4, "Halo Infinite",             "Xbox Series X", "Shooter",       3, 30000.00f, JUEGO_ACTIVO},
-        {5, "Spider-Man 2",              "PS5",           "Accion",        9, 45000.00f, JUEGO_ACTIVO},
-        {6, "Hollow Knight",             "PC",            "Metroidvania",  0, 12000.00f, JUEGO_ACTIVO},
-        {7, "Mario Kart 8 Deluxe",       "Switch",        "Carreras",     14, 38000.00f, JUEGO_ACTIVO},
-        {8, "Cyberpunk 2077",            "PS5",           "RPG",           2, 28000.00f, JUEGO_INACTIVO}
+        {1, "God of War Ragnarok",        "PS5",           "Accion",       12, 42000.00f, JUEGO_ACTIVO},
+        {2, "Elden Ring",                 "PC",            "RPG",           4, 35000.00f, JUEGO_ACTIVO},
+        {3, "Zelda Tears of the Kingdom", "Switch",        "Aventura",      1, 48000.00f, JUEGO_ACTIVO},
+        {4, "Halo Infinite",              "Xbox Series X", "Shooter",       3, 30000.00f, JUEGO_ACTIVO},
+        {5, "Spider-Man 2",               "PS5",           "Accion",        9, 45000.00f, JUEGO_ACTIVO},
+        {6, "Hollow Knight",              "PC",            "Metroidvania",  0, 12000.00f, JUEGO_ACTIVO},
+        {7, "Mario Kart 8 Deluxe",        "Switch",        "Carreras",     14, 38000.00f, JUEGO_ACTIVO},
+        {8, "Cyberpunk 2077",             "PS5",           "RPG",           2, 28000.00f, JUEGO_INACTIVO}
     };
 
     if (seedArchivoExiste(ARCHIVO_VIDEOJUEGOS)) {
@@ -96,7 +96,7 @@ static void seedCrearVideojuegos(void) {
 }
 
 /* Crea transacciones.bin con 4 ventas coherentes en distintos meses y anios */
-static void seedCrearTransacciones(void) {
+void seedCrearTransacciones(void) {
     FILE *archi;
     Transaccion lote[4] = {
         {1, {10, 11, 2026}, 1, 2, 65000.00f, 46000.00f, "40123456", "35444555"},
